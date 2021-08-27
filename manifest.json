@@ -1,10 +1,10 @@
 {
-	"id": "obsidian-jump-to-date-plugin",
-	"name": "Obsidian42 - Jump-to-Date",
+	"id": "obsidian-warp-drive",
+	"name": "Obsidian42 - Warp Drive",
 	"version": "1.0.5",
 	"minAppVersion": "0.9.12",
-	"description": "Popup calendar for quickly navigating dates",
+	"description": "Advanced text tools for working  with your entire vault",
 	"author": "TfT Hacker",
-	"authorUrl": "https://github.com/TfTHacker/Obsidian-WordNet",
+	"authorUrl": "https://github.com/TfTHacker/Obsidian-warp-drive",
 	"isDesktopOnly": false
 }
