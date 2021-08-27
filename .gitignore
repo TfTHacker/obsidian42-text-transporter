@@ -1,0 +1,15 @@
+# vscode
+.vscode 
+
+# npm
+node_modules
+package-lock.json
+
+# build
+build
+main.js
+*.js.map
+dict-MyDict.json
+
+# obsidian
+data.json
