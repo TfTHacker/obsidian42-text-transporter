@@ -2,8 +2,8 @@ import { FuzzySuggestModal, FuzzyMatch, MarkdownView } from 'obsidian';
 import ThePlugin from '../main';
 
 interface suggesterItem {
-    display: string,
-    info: any
+    display: string,        // displayed to user
+    info: any               // supplmental info for the callback
 }
 
 /* USAGE:
