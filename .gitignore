@@ -6,10 +6,10 @@ node_modules
 package-lock.json
 
 # build
-build
-main.js
+build/main.js
+build/.hotreload
 *.js.map
 dict-MyDict.json
 
 # obsidian
-data.json
+build/data.json
