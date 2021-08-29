@@ -1,6 +1,8 @@
 import { FuzzySuggestModal, FuzzyMatch, MarkdownView } from 'obsidian';
 import ThePlugin from '../main';
 
+const MAX_RESULTS_TO_RETURN = 100;
+
 interface suggesterItem {
     display: string,        // displayed to user
     info: any               // supplmental info for the callback
@@ -34,7 +36,7 @@ class genericFuzzySuggester extends FuzzySuggestModal<suggesterItem>{
         let results = [];
         const searchTerm = searchText.toLocaleLowerCase();
         let countOfFoundMatches = 0;
-        for (let i = 0; (i < this.data.length && countOfFoundMatches < 30); i++) {
+        for (let i = 0; (i < this.data.length && countOfFoundMatches < MAX_RESULTS_TO_RETURN); i++) {
             let item = this.data[i];
             if (item['display'].toLowerCase().contains(searchTerm)) {
                 results.push(this.data[i]);
@@ -47,7 +49,7 @@ class genericFuzzySuggester extends FuzzySuggestModal<suggesterItem>{
     getItems(): suggesterItem[] {
         let searchTerm = this.inputEl.value.trim();
         //display first  20 items from suggesterItem array or show results of search
-        return searchTerm === '' ? this.data.slice(0, 20) : this.query(searchTerm)
+        return searchTerm === '' ? this.data.slice(0, MAX_RESULTS_TO_RETURN) : this.query(searchTerm)
     };
 
     getItemText(item: suggesterItem) { return item.display };
