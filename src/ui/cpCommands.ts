@@ -10,8 +10,13 @@ interface commandDefinition {
 export default class pluginCommands {
     plugin: ThePlugin;
     commands: Array<suggesterItem> = [
-        { display: "test 1 function name", info: async (e: Event) => console.log('test 1', this.plugin, e) },
-        { display: "test 2 function name", info: async (e: Event) => console.log('test 2', this.plugin, e) },
+        { display: "Copy a block from another file to the current cursor location (CB)", info: async (e: Event) => {} },
+        { display: "Copy this block to another file as a block reference (CR)", info: async (e: Event) => {} },    
+        { display: "Pull block from another file and delete the original block (PD)", info: async (e: Event) => {} },
+        { display: "Pull block from another file and replace it with a block reference (PE)", info: async (e: Event) => {} },
+        { display: "Pull block from another file as a block reference (PR)", info: async (e: Event) => {} },
+        { display: "Push (move) this block to another file (MD)", info: async (e: Event) => {} },
+        { display: "Push (move) this block to another file and replace it with a block reference (ME)", info: async (e: Event) => {} },
     ];
 
     constructor(plugin: ThePlugin) {
