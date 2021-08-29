@@ -1,7 +1,7 @@
 {
-  "name": "obsidian-warp-drive",
+  "name": "obsidian42-text-transporter",
   "version": "1.0.0",
-  "description": "Obsidian42 - Warp Drive.",
+  "description": "Obsidian42 - Text Transpoerter.",
   "main": "main.js",
   "scripts": {
     "dev": "esbuild src/main.ts --bundle --external:obsidian --format=cjs --outfile=build/main.js --watch",
@@ -11,7 +11,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git://github.com/TfTHacker/obsidian42-warp-drive.git"
+    "url": "git://github.com/TfTHacker/obsidian42-text-transporter.git"
   },
   "devDependencies": {
     "@types/node": "^16.7.2",

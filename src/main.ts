@@ -4,8 +4,8 @@ import fileSystem from "./utils/fileSystem";
 import pluginCommands from "./ui/cpCommands"
 
 export default class ThePlugin extends Plugin {
-	appName: string = "Obsidian42 - WarpDrive";
-	appID: string = "obsidian-warp-drive";
+	appName: string = "Obsidian42 - Text Transporter";
+	appID: string = "obsidian42-text-transporter";
 	fs: fileSystem;
 	commands: pluginCommands;
 

@@ -1,2 +1,1 @@
-# obsidian42-warp-drive
-Warp Drive - advanced text management for Obsidian
+Text Transporter - advanced text management for Obsidian

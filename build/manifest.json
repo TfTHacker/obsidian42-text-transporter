@@ -1,10 +1,10 @@
 {
-	"id": "obsidian-warp-drive",
-	"name": "Obsidian42 - Warp Drive",
+	"id": "obsidian42-text-transporter",
+	"name": "Obsidian42 - Text Transporter",
 	"version": "1.0.5",
 	"minAppVersion": "0.9.12",
 	"description": "Advanced text tools for working  with your entire vault",
 	"author": "TfT Hacker",
-	"authorUrl": "https://github.com/TfTHacker/Obsidian-warp-drive",
+	"authorUrl": "https://github.com/TfTHacker/obsidian-text-transporter",
 	"isDesktopOnly": false
 }
