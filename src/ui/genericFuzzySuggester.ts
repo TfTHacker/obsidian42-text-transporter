@@ -23,14 +23,14 @@ class genericFuzzySuggester extends FuzzySuggestModal<suggesterItem>{
 
     constructor(plugin: ThePlugin) {
         super(plugin.app);
-    }
+    };
 
     setSuggesterData(suggesterData: Array<suggesterItem>): void { this.data = suggesterData };
 
     async display(callBack: (item: suggesterItem, evt: MouseEvent | KeyboardEvent) => void): Promise<any> {
         this.callbackFunction = callBack;
         this.open();
-    }
+    };
 
     query(searchText: string): any {
         let results = [];
@@ -44,7 +44,7 @@ class genericFuzzySuggester extends FuzzySuggestModal<suggesterItem>{
             }
         }
         return results;
-    }
+    };
 
     getItems(): suggesterItem[] {
         let searchTerm = this.inputEl.value.trim();
@@ -62,4 +62,4 @@ class genericFuzzySuggester extends FuzzySuggestModal<suggesterItem>{
 
 }
 
-export { suggesterItem, genericFuzzySuggester }
+export { suggesterItem, genericFuzzySuggester };

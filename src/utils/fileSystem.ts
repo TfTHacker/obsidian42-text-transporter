@@ -13,7 +13,7 @@ const testFolderExclusion = (folder: string, exclusionFolders: Array<string>): b
         if (folder.startsWith(eFolder + '/'))
             return true
     return false;
-}
+};
 
 const getFiles = async (app: App, rootPath: string, returnType: fileSystemReturnType, responseArray: Array<suggesterItem>, exclusionFolders: Array<string>) => {
     let list = await app.vault.adapter.list(rootPath);
@@ -28,7 +28,7 @@ const getFiles = async (app: App, rootPath: string, returnType: fileSystemReturn
                 responseArray.push({ display: folder + '/', info: '' }); //add file to array
         await getFiles(app, folder, returnType, responseArray, exclusionFolders);
     }
-}
+};
 
 const addLastOpenFiles = async (app: App, responseArray: Array<suggesterItem>) => {
     const lastOpenFiles = app.workspace.getLastOpenFiles().reverse();
@@ -38,7 +38,7 @@ const addLastOpenFiles = async (app: App, responseArray: Array<suggesterItem>) =
     
     for (let recentFile of lastOpenFiles)
         responseArray.unshift({ display: recentFile, info: '' }); //add file to array        
-}
+};
 
 export default class fileSystem {
     app: App;
@@ -48,26 +48,25 @@ export default class fileSystem {
 
     setExclusionFolders(exclusion: Array<string>): void {
         this.exclusionFolders = exclusion;
-    }
+    };
 
     async getAllFolders(rootPath: string): Promise<Array<suggesterItem>> {
         let results: Array<suggesterItem> = [];
         await getFiles(this.app, rootPath, fileSystemReturnType.foldersOnly, results, this.exclusionFolders);
         return results;
-    }
+    };
 
     async getAllFiles(rootPath: string): Promise<Array<suggesterItem>> {
         let results: Array<suggesterItem> = [];
         await getFiles(this.app, rootPath, fileSystemReturnType.filesOnly, results, this.exclusionFolders);
         await addLastOpenFiles(this.app, results);
         return results;
-    }
+    };
 
     async getAllFoldersAndFiles(rootPath: string): Promise<Array<suggesterItem>> {
         let results: Array<suggesterItem> = [];
         await getFiles(this.app, rootPath, fileSystemReturnType.filesAndFolders, results, this.exclusionFolders);
         await addLastOpenFiles(this.app, results);
         return results;
-    }
-
-}
+    };
+};
