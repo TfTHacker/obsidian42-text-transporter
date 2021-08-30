@@ -12,7 +12,8 @@ export default class pluginCommands {
     plugin: ThePlugin;
     commands: Array<suggesterItem> = [
         // { display: " ()", info: async (e: Event) => {} },
-        { display: "Select current line", info: async (e: Event) => transporter.selectCurrentLine()  },
+        { display: "Select current line and expand up into previous block (SP)", info: async (e: Event) => transporter.selectCurrentSection(true)  },
+        { display: "Select current line and expand down into next block (SN)", info: async (e: Event) => transporter.selectCurrentSection(false)  },
         { display: "Copy current block to clipboard as a block reference (CC)", info: async (e: Event) => transporter.copyBlockRefToClipboard()  },
     ];
 
