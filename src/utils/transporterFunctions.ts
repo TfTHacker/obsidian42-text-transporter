@@ -37,6 +37,11 @@ function selectCurrentLine() {
     ctx.editor.setSelection({ line: ctx.currentLine, ch: 0 }, { line: ctx.currentLine, ch: 9999 });
 }
 
+//get the current block information from the cache
+function indentifyCurrentSection() {
+    const ctx = getContextObjects();
+    return ctx.cache.sections.find(section=>section.position.start.line<=ctx.currentLine && section.position.end.line>=ctx.currentLine );
+}
 
 // Select the current section in the editor of activeLeaf
 function selectCurrentSection(directionUP: boolean = true) {
@@ -112,4 +117,4 @@ function copyBlockRefToClipboard() {
         new Notice("The current cursor location is not a heading or block of text.");
 }; //copyBlockRefToClipboard
 
-export { selectCurrentLine, copyBlockRefToClipboard, selectCurrentSection };
+export { selectCurrentLine, copyBlockRefToClipboard, selectCurrentSection, indentifyCurrentSection};
