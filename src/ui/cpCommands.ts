@@ -1,5 +1,6 @@
 import ThePlugin from "../main";
 import { genericFuzzySuggester, suggesterItem } from "./genericFuzzySuggester";
+import * as transporter from "../utils/transporterFunctions"
 
 interface commandDefinition {
     name: string;
@@ -10,13 +11,9 @@ interface commandDefinition {
 export default class pluginCommands {
     plugin: ThePlugin;
     commands: Array<suggesterItem> = [
-        { display: "Copy a block from another file to the current cursor location (CB)", info: async (e: Event) => {} },
-        { display: "Copy this block to another file as a block reference (CR)", info: async (e: Event) => {} },    
-        { display: "Pull block from another file and delete the original block (PD)", info: async (e: Event) => {} },
-        { display: "Pull block from another file and replace it with a block reference (PE)", info: async (e: Event) => {} },
-        { display: "Pull block from another file as a block reference (PR)", info: async (e: Event) => {} },
-        { display: "Push (move) this block to another file (MD)", info: async (e: Event) => {} },
-        { display: "Push (move) this block to another file and replace it with a block reference (ME)", info: async (e: Event) => {} },
+        // { display: " ()", info: async (e: Event) => {} },
+        { display: "Select current line", info: async (e: Event) => transporter.selectCurrentLine()  },
+        { display: "Copy current block to clipboard as a block reference (CC)", info: async (e: Event) => transporter.copyBlockRefToClipboard()  },
     ];
 
     constructor(plugin: ThePlugin) {
