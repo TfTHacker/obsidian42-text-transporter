@@ -1,4 +1,4 @@
-import { nanoid } from 'nanoid';
+import { customAlphabet } from 'nanoid';
 import { CachedMetadata, Editor, TFile, View, Notice, EditorSelection, EditorRange } from "obsidian";
 import { json } from 'stream/consumers';
 
@@ -96,7 +96,6 @@ function selectCurrentSection(directionUP: boolean = true) {
 // if it is a block of text, the last line in the block is assigned a reference ID and this is copied into the clipboard
 function copyBlockRefToClipboard() {
     const ctx = getContextObjects();
-console.log(   ctx.currentLine  )
     const lastLineOfBlock = ctx.cache.sections.find(section => {
         if (ctx.currentLine >= Number(section.position.start.line) && ctx.currentLine <= Number(section.position.end.line)) {
             return section.position.start;
@@ -104,11 +103,12 @@ console.log(   ctx.currentLine  )
     });
     if (lastLineOfBlock) {
         if (lastLineOfBlock.type === "heading") {
-            const headerText: string = ctx.editor.getRange({ line: ctx.currentLine, ch: 0 }, { line: ctx.currentLine, ch: 9999 })
-            let block = `![[${ctx.currentFile.name + headerText}]]`.split("\n").join("");
+            const headerText: string = ctx.editor.getRange({ line: ctx.currentLine, ch: 0 }, { line: ctx.currentLine, ch: ctx.editor.getLine(ctx.currentLine).length })
+            let block = `![[${ctx.currentFile.name + headerText.trim()}]]`.split("\n").join("");
             navigator.clipboard.writeText(block).then(text => text);
         } else {
-            let id = lastLineOfBlock.id ? lastLineOfBlock.id : nanoid(6);
+            const nanoid = customAlphabet('abcdefghijklmnopqrstuvwz', 6)
+            let id = lastLineOfBlock.id ? lastLineOfBlock.id : nanoid();
             let block = `![[${ctx.currentFile.name}#^${id}]]`.split("\n").join("");
             navigator.clipboard.writeText(block).then(text => text);
             if (!lastLineOfBlock.id)
