@@ -1,5 +1,6 @@
 import { nanoid } from 'nanoid';
 import { CachedMetadata, Editor, TFile, View, Notice, EditorSelection, EditorRange } from "obsidian";
+import { json } from 'stream/consumers';
 
 function getContextObjects() {
     const currentView: View = this.app.workspace.activeLeaf.view;
@@ -34,7 +35,7 @@ function groupifySections(ctx) {
 // Select the current line in the editor of activeLeaf
 function selectCurrentLine() {
     const ctx = getContextObjects();
-    ctx.editor.setSelection({ line: ctx.currentLine, ch: 0 }, { line: ctx.currentLine, ch: 9999 });
+    ctx.editor.setSelection({ line: ctx.currentLine, ch: 0 }, { line: ctx.currentLine, ch: ctx.editor.getLine(ctx.editor.getCursor().line).length });
 }
 
 //get the current block information from the cache
@@ -49,8 +50,8 @@ function selectCurrentSection(directionUP: boolean = true) {
     const currentRange: EditorSelection[] = ctx.editor.listSelections();
     if (currentRange[0].anchor.line === currentRange[0].head.line &&
         (currentRange[0].head.ch !== ctx.editor.getSelection().length) || (currentRange[0].head.ch === 0 && currentRange[0].anchor.ch === 0) &&
-        (ctx.editor.getRange( { line: ctx.editor.getCursor().line, ch: 9999 },  { line: ctx.editor.getCursor().line, ch: 0 } ).length !== 0)) {
-        ctx.editor.setSelection({ line: ctx.currentLine, ch: 0 }, { line: ctx.currentLine, ch: 9999 });
+        (ctx.editor.getRange( { line: ctx.currentLine, ch: ctx.editor.getLine(ctx.currentLine).length },  { line: ctx.currentLine, ch: 0 } ).length !== 0)) {
+        ctx.editor.setSelection({ line: ctx.currentLine, ch: 0 }, { line: ctx.currentLine, ch: ctx.editor.getLine(ctx.currentLine).length });
     } else {
         let firstSelectedLine = 0;
         let lastSelectedLine = 0;
@@ -75,13 +76,13 @@ function selectCurrentSection(directionUP: boolean = true) {
                 proceedingBlock = ctx.cache.sections[i];
         }
         if (proceedingBlock && directionUP) {
-            ctx.editor.setSelection({ line: proceedingBlock.position.start.line, ch: 0 }, { line: currentBlock.position.end.line, ch: 9999 });
+            ctx.editor.setSelection({ line: proceedingBlock.position.start.line, ch: 0 }, { line: currentBlock.position.end.line, ch: ctx.editor.getLine(currentBlock.position.end.line).length  });
             ctx.editor.scrollIntoView({ from: proceedingBlock.position.start, to: proceedingBlock.position.start });
         } else if (directionUP) {
-            ctx.editor.setSelection({ line: 0, ch: 0 }, { line: lastSelectedLine, ch: 9999 });
+            ctx.editor.setSelection({ line: 0, ch: 0 }, { line: lastSelectedLine, ch: ctx.editor.getLine(lastSelectedLine).length });
             ctx.editor.scrollIntoView({ from: {line: 0, ch:0 }, to:  {line: firstSelectedLine, ch:0 } });
         } else if (nextBlock && directionUP===false) {
-            ctx.editor.setSelection( {line: firstSelectedLine, ch: 0 } ,  { line: nextBlock.position.end.line, ch: 9999 } );
+            ctx.editor.setSelection( {line: firstSelectedLine, ch: 0 } ,  { line: nextBlock.position.end.line, ch: ctx.editor.getLine(nextBlock.position.end.line).length } );
             ctx.editor.scrollIntoView({ from: nextBlock.position.start, to: nextBlock.position.start });
         } else if (directionUP==false) {
             ctx.editor.setSelection( {line: firstSelectedLine, ch: 0 } ,  { line: 99999, ch: 9999 } );
@@ -95,13 +96,13 @@ function selectCurrentSection(directionUP: boolean = true) {
 // if it is a block of text, the last line in the block is assigned a reference ID and this is copied into the clipboard
 function copyBlockRefToClipboard() {
     const ctx = getContextObjects();
+console.log(   ctx.currentLine  )
     const lastLineOfBlock = ctx.cache.sections.find(section => {
         if (ctx.currentLine >= Number(section.position.start.line) && ctx.currentLine <= Number(section.position.end.line)) {
             return section.position.start;
         }
     });
     if (lastLineOfBlock) {
-        console.log(lastLineOfBlock)
         if (lastLineOfBlock.type === "heading") {
             const headerText: string = ctx.editor.getRange({ line: ctx.currentLine, ch: 0 }, { line: ctx.currentLine, ch: 9999 })
             let block = `![[${ctx.currentFile.name + headerText}]]`.split("\n").join("");
@@ -111,7 +112,7 @@ function copyBlockRefToClipboard() {
             let block = `![[${ctx.currentFile.name}#^${id}]]`.split("\n").join("");
             navigator.clipboard.writeText(block).then(text => text);
             if (!lastLineOfBlock.id)
-                ctx.editor.replaceRange(`${ctx.editor.getSelection().split("\n").join("")} ^${id}`, { line: Number(lastLineOfBlock.position.end.line), ch: lastLineOfBlock.position.end.col }, { line: Number(lastLineOfBlock.position.end.line), ch: 9999 });
+                ctx.editor.replaceRange(`${ctx.editor.getSelection().split("\n").join("")} ^${id}`, { line: Number(lastLineOfBlock.position.end.line), ch: lastLineOfBlock.position.end.col }, { line: Number(lastLineOfBlock.position.end.line), ch: lastLineOfBlock.position.end.col });
         }
     } else
         new Notice("The current cursor location is not a heading or block of text.");

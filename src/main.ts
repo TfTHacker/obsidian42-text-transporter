@@ -15,6 +15,7 @@ export default class ThePlugin extends Plugin {
 		this.fs = new fileSystem(this.app);
 		this.commands = new pluginCommands(this)
 
+
 	};
 
 	onunload() {
