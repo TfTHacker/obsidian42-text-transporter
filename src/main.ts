@@ -15,14 +15,9 @@ export default class ThePlugin extends Plugin {
 		this.fs = new fileSystem(this.app);
 		this.commands = new pluginCommands(this)
 
-
+		await transporter.copyOrMoveLineOrSelectionToNewLocation(this,false)
 	};
 
-	onunload() {
-		console.log("unloading " + this.appName);
-
-
-		
-	};
+	onunload() { console.log("unloading " + this.appName) };
 
 }

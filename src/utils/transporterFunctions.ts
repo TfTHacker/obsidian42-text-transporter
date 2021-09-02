@@ -1,6 +1,8 @@
 import { customAlphabet } from 'nanoid';
-import { CachedMetadata, Editor, TFile, View, Notice, EditorSelection, EditorRange } from "obsidian";
-import { json } from 'stream/consumers';
+import { CachedMetadata, Editor, TFile, View, Notice, EditorSelection } from "obsidian";
+import { genericFuzzySuggester } from '../ui/genericFuzzySuggester';
+import ThePlugin from '../main';
+import { suggesterItem } from '../ui/genericFuzzySuggester';
 
 function getContextObjects() {
     const currentView: View = this.app.workspace.activeLeaf.view;
@@ -41,7 +43,7 @@ function selectCurrentLine() {
 //get the current block information from the cache
 function indentifyCurrentSection() {
     const ctx = getContextObjects();
-    return ctx.cache.sections.find(section=>section.position.start.line<=ctx.currentLine && section.position.end.line>=ctx.currentLine );
+    return ctx.cache.sections.find(section => section.position.start.line <= ctx.currentLine && section.position.end.line >= ctx.currentLine);
 }
 
 // Select the current section in the editor of activeLeaf
@@ -50,7 +52,7 @@ function selectCurrentSection(directionUP: boolean = true) {
     const currentRange: EditorSelection[] = ctx.editor.listSelections();
     if (currentRange[0].anchor.line === currentRange[0].head.line &&
         (currentRange[0].head.ch !== ctx.editor.getSelection().length) || (currentRange[0].head.ch === 0 && currentRange[0].anchor.ch === 0) &&
-        (ctx.editor.getRange( { line: ctx.currentLine, ch: ctx.editor.getLine(ctx.currentLine).length },  { line: ctx.currentLine, ch: 0 } ).length !== 0)) {
+        (ctx.editor.getRange({ line: ctx.currentLine, ch: ctx.editor.getLine(ctx.currentLine).length }, { line: ctx.currentLine, ch: 0 }).length !== 0)) {
         ctx.editor.setSelection({ line: ctx.currentLine, ch: 0 }, { line: ctx.currentLine, ch: ctx.editor.getLine(ctx.currentLine).length });
     } else {
         let firstSelectedLine = 0;
@@ -69,24 +71,24 @@ function selectCurrentSection(directionUP: boolean = true) {
             if (lastSelectedLine >= ctx.cache.sections[i].position.start.line) {
                 currentBlock = ctx.cache.sections[i];
                 try {
-                    nextBlock = ctx.cache.sections[i+1];
-                 } catch (e) {}
+                    nextBlock = ctx.cache.sections[i + 1];
+                } catch (e) { }
             }
-            if (firstSelectedLine > ctx.cache.sections[i].position.end.line) 
+            if (firstSelectedLine > ctx.cache.sections[i].position.end.line)
                 proceedingBlock = ctx.cache.sections[i];
         }
         if (proceedingBlock && directionUP) {
-            ctx.editor.setSelection({ line: proceedingBlock.position.start.line, ch: 0 }, { line: currentBlock.position.end.line, ch: ctx.editor.getLine(currentBlock.position.end.line).length  });
+            ctx.editor.setSelection({ line: proceedingBlock.position.start.line, ch: 0 }, { line: currentBlock.position.end.line, ch: ctx.editor.getLine(currentBlock.position.end.line).length });
             ctx.editor.scrollIntoView({ from: proceedingBlock.position.start, to: proceedingBlock.position.start });
         } else if (directionUP) {
             ctx.editor.setSelection({ line: 0, ch: 0 }, { line: lastSelectedLine, ch: ctx.editor.getLine(lastSelectedLine).length });
-            ctx.editor.scrollIntoView({ from: {line: 0, ch:0 }, to:  {line: firstSelectedLine, ch:0 } });
-        } else if (nextBlock && directionUP===false) {
-            ctx.editor.setSelection( {line: firstSelectedLine, ch: 0 } ,  { line: nextBlock.position.end.line, ch: ctx.editor.getLine(nextBlock.position.end.line).length } );
+            ctx.editor.scrollIntoView({ from: { line: 0, ch: 0 }, to: { line: firstSelectedLine, ch: 0 } });
+        } else if (nextBlock && directionUP === false) {
+            ctx.editor.setSelection({ line: firstSelectedLine, ch: 0 }, { line: nextBlock.position.end.line, ch: ctx.editor.getLine(nextBlock.position.end.line).length });
             ctx.editor.scrollIntoView({ from: nextBlock.position.start, to: nextBlock.position.start });
-        } else if (directionUP==false) {
-            ctx.editor.setSelection( {line: firstSelectedLine, ch: 0 } ,  { line: 99999, ch: 9999 } );
-            ctx.editor.scrollIntoView({ from: {line: firstSelectedLine, ch:0}, to: { line: 99999, ch: 9999 } });
+        } else if (directionUP == false) {
+            ctx.editor.setSelection({ line: firstSelectedLine, ch: 0 }, { line: 99999, ch: 9999 });
+            ctx.editor.scrollIntoView({ from: { line: firstSelectedLine, ch: 0 }, to: { line: 99999, ch: 9999 } });
         }
     }
 }
@@ -118,4 +120,57 @@ function copyBlockRefToClipboard() {
         new Notice("The current cursor location is not a heading or block of text.");
 }; //copyBlockRefToClipboard
 
-export { selectCurrentLine, copyBlockRefToClipboard, selectCurrentSection, indentifyCurrentSection};
+// displays a file selection  suggester,  then the contents of the file, then calls the callback  with:
+// Callback function  will receive: Path+FileName, file contents as an array and line choosen
+async function displayFileLineSuggester(plugin: ThePlugin, callback: any ) {
+    const chooser = new genericFuzzySuggester(plugin);
+    chooser.setSuggesterData(await plugin.fs.getAllFiles("/"));
+
+    await chooser.display( async (i: suggesterItem, evt: MouseEvent | KeyboardEvent  )=>{ 
+        // @ts-ignore
+        const targetFileName = i.item.display;
+        const curContent = await plugin.app.vault.adapter.read(targetFileName);
+        let fileContentsArray: Array<suggesterItem> = [];
+
+        for (const [key, value] of Object.entries(curContent.split('\n'))) 
+        fileContentsArray.push( { display: value, info: key} );
+
+        chooser.setSuggesterData(fileContentsArray);
+
+        await chooser.display( async (i: suggesterItem, evt: MouseEvent | KeyboardEvent  )=>{
+            callback(targetFileName, fileContentsArray, i.item.info); 
+        });
+
+    });
+
+}
+
+
+// Copies the current line or selection to another file
+// copySelection = true for copy, false for move
+async function copyOrMoveLineOrSelectionToNewLocation(plugin:  ThePlugin, copySelection: boolean) {
+    const ctx = getContextObjects();
+    let selectedText = ctx.editor.getSelection();
+    if (selectedText === "") selectedText = ctx.editor.getLine(ctx.currentLine); //get text from current line
+    await displayFileLineSuggester(plugin, (targetFileName, fileContentsArray, lineNumber)=>{
+            // @ts-ignore
+            fileContentsArray.splice(Number(lineNumber)+1, 0, {display: selectedText, info:""});
+            let newContents: string = "";
+            for(const line of fileContentsArray)
+                newContents += line.display + "\n";
+            newContents = newContents.substring(0,newContents.length-1);
+            plugin.app.vault.adapter.write(targetFileName, newContents);
+            if(copySelection===false) {//this  is  a move, so delete the selection
+                const textSelection  = ctx.editor.getSelection();
+                if (textSelection==="" || ctx.editor.getLine(ctx.currentLine).length === textSelection.length) 
+                    ctx.editor.replaceRange("", {line: ctx.currentLine, ch:0}, {line: ctx.currentLine+1, ch:0} )
+                else
+                    ctx.editor.replaceSelection(""); //replace whatever is the  selection
+            }
+    })
+}
+
+
+
+
+export { selectCurrentLine, copyBlockRefToClipboard, selectCurrentSection, indentifyCurrentSection, copyOrMoveLineOrSelectionToNewLocation }
