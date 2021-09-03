@@ -122,9 +122,11 @@ function copyBlockRefToClipboard(): void {
 
 // displays a file selection  suggester,  then the contents of the file, then calls the callback  with:
 // Callback function  will receive: Path+FileName, file contents as an array and line choosen
-async function displayFileLineSuggester(plugin: ThePlugin, callback): Promise<void> {
+// if returnEndPoint = true, another suggester is shown so user can select endpoint of selection from file
+async function displayFileLineSuggester(plugin: ThePlugin,returnEndPoint:boolean,  callback): Promise<void> {
     const chooser = new genericFuzzySuggester(plugin);
     chooser.setSuggesterData(await plugin.fs.getAllFiles("/"));
+    chooser.setPlaceholder("Select a file")
 
     await chooser.display(async (i: suggesterItem) => {
         // @ts-ignore
@@ -136,11 +138,26 @@ async function displayFileLineSuggester(plugin: ThePlugin, callback): Promise<vo
             fileContentsArray.push({ display: value, info: key });
 
         chooser.setSuggesterData(fileContentsArray);
+        chooser.setPlaceholder("Select the line from file")
 
         await chooser.display(async (iFileLocation: suggesterItem, evt: MouseEvent | KeyboardEvent) => {
-            // @ts-ignore
-            callback(targetFileName, fileContentsArray, iFileLocation.item.info, evt);
+            if(returnEndPoint) { //if expecting endpoint, show suggester again
+                console.log( Number(iFileLocation.item.info), fileContentsArray.length-1 )
+                if( Number(iFileLocation.item.info)===fileContentsArray.length-1) {
+                    //only one element in file, or selection is end of file
+                    callback(targetFileName, fileContentsArray, Number(iFileLocation.item.info), Number(iFileLocation.item.info), evt);   
+                } else {
+                    const endPointArray = fileContentsArray.slice(Number(iFileLocation.item.info));
+                    chooser.setSuggesterData(endPointArray);
+                    chooser.setPlaceholder("Select the last line for the selection")
+                    await chooser.display(async (iFileLocationEndPoint: suggesterItem, evt: MouseEvent | KeyboardEvent) => {
+                        callback(targetFileName, fileContentsArray, Number(iFileLocation.item.info), Number(iFileLocationEndPoint.item.info), evt);   
+                    });
+             }
+            } else
+                callback(targetFileName, fileContentsArray, Number(iFileLocation.item.info), evt);
         });
+
 
     });
 
@@ -153,7 +170,7 @@ async function copyOrMoveLineOrSelectionToNewLocation(plugin: ThePlugin, copySel
     const ctx = getContextObjects();
     let selectedText = ctx.editor.getSelection();
     if (selectedText === "") selectedText = ctx.editor.getLine(ctx.currentLine); //get text from current line
-    await displayFileLineSuggester(plugin, (targetFileName, fileContentsArray, lineNumber) => {
+    await displayFileLineSuggester(plugin, false, (targetFileName, fileContentsArray, lineNumber) => {
         // @ts-ignore
         fileContentsArray.splice(Number(lineNumber) + 1, 0, { display: selectedText, info: "" });
         let newContents = "";
@@ -172,6 +189,29 @@ async function copyOrMoveLineOrSelectionToNewLocation(plugin: ThePlugin, copySel
 }
 
 
+// Move a line or lines from another file
+async function copyOrMoveLineOrSelectionFromAnotherLocation(plugin: ThePlugin, copySelection: boolean): Promise<void> {
+    await displayFileLineSuggester(plugin, true, (targetFileName, fileContentsArray, startLine, endLine, evt) => {
+        let stringToInsertIntoSelection = "";
+        for(const element of fileContentsArray.slice(startLine, endLine+1))
+            stringToInsertIntoSelection += element.display + "\n";
+        const ctx = getContextObjects();
+        stringToInsertIntoSelection = stringToInsertIntoSelection.substring(0, stringToInsertIntoSelection.length - 1);
+        ctx.editor.replaceSelection(stringToInsertIntoSelection);    
+        if(copySelection===false) {
+            //move selection, which means deleting what was just copied from original file
+            fileContentsArray.splice(startLine, (endLine+1)-startLine);
+            let newContents = "";
+            for (const line of fileContentsArray)
+                newContents += line.display + "\n";
+            newContents = newContents.substring(0, newContents.length - 1);
+            plugin.app.vault.adapter.write(targetFileName, newContents);    
+        }
+    })
+}
 
 
-export { selectCurrentLine, copyBlockRefToClipboard, selectCurrentSection, indentifyCurrentSection, copyOrMoveLineOrSelectionToNewLocation }
+
+export { selectCurrentLine, copyBlockRefToClipboard, selectCurrentSection, 
+         indentifyCurrentSection, copyOrMoveLineOrSelectionToNewLocation,
+         copyOrMoveLineOrSelectionFromAnotherLocation }

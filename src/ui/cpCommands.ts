@@ -11,8 +11,10 @@ export default class pluginCommands {
         { display: "Select current line and expand up into previous block (SP)", info: async (): Promise<void> => transporter.selectCurrentSection(true)  },
         { display: "Select current line and expand down into next block (SN)", info: async (): Promise<void>  => transporter.selectCurrentSection(false)  },
         { display: "Copy current block to clipboard as a block reference (CC)", info: async (): Promise<void>  => transporter.copyBlockRefToClipboard()  },
-        { display: "Copy line/selection to another file (CLS)", info: async (): Promise<void>  => transporter.copyOrMoveLineOrSelectionToNewLocation(this.plugin, true) },
-        { display: "Move line/selection to another file (MLS)", info: async (): Promise<void>  => transporter.copyOrMoveLineOrSelectionToNewLocation(this.plugin, false) },
+        { display: "Copy line/selection to another file (CLT)", info: async (): Promise<void>  => transporter.copyOrMoveLineOrSelectionToNewLocation(this.plugin, true) },
+        { display: "Move line/selection to another file (MLT)", info: async (): Promise<void>  => transporter.copyOrMoveLineOrSelectionToNewLocation(this.plugin, false) },
+        { display: "Copy line(s) from another file (CLF)", info: async (): Promise<void>  => transporter.copyOrMoveLineOrSelectionFromAnotherLocation(this.plugin, true) },
+        { display: "Move line(s) from another file (MLF)", info: async (): Promise<void>  => transporter.copyOrMoveLineOrSelectionFromAnotherLocation(this.plugin, false) },
         { display: "reload plugin (RP)", info: async (): Promise<void>  => {
             new Notice('Reloading plugin : Text Transporter');
             await app.plugins.disablePlugin('obsidian42-text-transporter');
