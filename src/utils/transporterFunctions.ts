@@ -50,7 +50,6 @@ function indentifyCurrentSection(): SectionCache {
 function selectCurrentSection(directionUP = true): void {
     const ctx = getContextObjects();
     const currentRange: EditorSelection[] = ctx.editor.listSelections();
-    console.log(1)
     if (currentRange[0].anchor.line === currentRange[0].head.line &&
         (currentRange[0].head.ch !== ctx.editor.getSelection().length) || (currentRange[0].head.ch === 0 && currentRange[0].anchor.ch === 0) &&
         (ctx.editor.getRange({ line: ctx.currentLine, ch: ctx.editor.getLine(ctx.currentLine).length }, { line: ctx.currentLine, ch: 0 }).length !== 0)) {
@@ -63,19 +62,16 @@ function selectCurrentSection(directionUP = true): void {
                 return section.position.start;
             }
         });
-        console.log(2)
 
         if(lastLineOfBlock===undefined) { // likely empty line is being triggered, nothing to select. so try to select the nearest block
             let nearestBlock = null; 
             for( const [key, value] of Object.entries(ctx.cache.sections))    {
-                console.log(directionUP, value,key, ctx.currentLine)
                 if ( directionUP===false && ctx.currentLine < Number(value.position.end.line) && nearestBlock===null) {
                     nearestBlock = value;
                 } else if ( directionUP===true && ctx.currentLine > Number(value.position.start.line)) {
                     nearestBlock = value;
                 }
             };
-            console.log('nearest', nearestBlock)
             if(nearestBlock!==null) {
                 ctx.editor.setSelection({ line: nearestBlock.position.start.line, ch: 0 }, { line: nearestBlock.position.end.line, ch: nearestBlock.position.end.col });
                 return;
@@ -84,15 +80,11 @@ function selectCurrentSection(directionUP = true): void {
 
         // console.log(lastLineOfBlock.position);
         const curSels = ctx.editor.listSelections();
-        console.log(lastLineOfBlock)
-        console.log(curSels[0])
-        if (lastLineOfBlock.type === "paragraph"  && curSels.length === 1 &&
+        if (lastLineOfBlock && lastLineOfBlock.type === "paragraph"  && curSels.length === 1 &&
             (curSels[0].anchor.line !== lastLineOfBlock.position.start.line && curSels[0].head.line !== lastLineOfBlock.position.end.line  )) {  
             // this clause is testing if the line is selected or some aspect of the block. if not a whole block selected, select the block
             ctx.editor.setSelection({ line: lastLineOfBlock.position.start.line, ch: 0 }, { line: lastLineOfBlock.position.end.line, ch: lastLineOfBlock.position.end.col });
         } else {
-            console.log(3)
-
             // something is selected, so expand the selection
             let firstSelectedLine = 0;
             let lastSelectedLine = 0;
@@ -106,8 +98,8 @@ function selectCurrentSection(directionUP = true): void {
                 firstSelectedLine = currentRange[0].head.line;
                 lastSelectedLine = currentRange[0].anchor.line;
             }
-            for (let i = 0; i < ctx.cache.sections.length-1; i++) {
-                if (lastSelectedLine >= ctx.cache.sections[i].position.start.line) {
+            for (let i = 0; i < ctx.cache.sections.length; i++) {
+                if (ctx.currentLine >= ctx.cache.sections[i].position.end.line) {
                     currentBlock = ctx.cache.sections[i];
                     try {
                         nextBlock = ctx.cache.sections[i + 1];
@@ -116,20 +108,18 @@ function selectCurrentSection(directionUP = true): void {
                 if (firstSelectedLine > ctx.cache.sections[i].position.end.line)
                     proceedingBlock = ctx.cache.sections[i];
             }
-            console.log(10)
 
             if (proceedingBlock && directionUP) {
-                ctx.editor.setSelection({ line: proceedingBlock.position.start.line, ch: 0 }, { line: currentBlock.position.end.line, ch: ctx.editor.getLine(currentBlock.position.end.line).length });
+                ctx.editor.setSelection( { line: proceedingBlock.position.start.line, ch: 0 }, 
+                        { line: currentBlock.position.end.line, ch: ctx.editor.getLine(currentBlock.position.end.line).length });
                 ctx.editor.scrollIntoView({ from: proceedingBlock.position.start, to: proceedingBlock.position.start });
             } else if (directionUP) {
                 ctx.editor.setSelection({ line: 0, ch: 0 }, { line: lastSelectedLine, ch: ctx.editor.getLine(lastSelectedLine).length });
                 ctx.editor.scrollIntoView({ from: { line: 0, ch: 0 }, to: { line: firstSelectedLine, ch: 0 } });
             } else if (nextBlock && directionUP === false) {
+                console.log( ctx.cache.sections)
                 ctx.editor.setSelection({ line: firstSelectedLine, ch: 0 }, { line: nextBlock.position.end.line, ch: ctx.editor.getLine(nextBlock.position.end.line).length });
                 ctx.editor.scrollIntoView({ from: nextBlock.position.start, to: nextBlock.position.start });
-            } else if (directionUP == false) {
-                ctx.editor.setSelection({ line: firstSelectedLine, ch: 0 }, { line: 99999, ch: 9999 });
-                ctx.editor.scrollIntoView({ from: { line: firstSelectedLine, ch: 0 }, to: { line: 99999, ch: 9999 } });
             }
         }
 
