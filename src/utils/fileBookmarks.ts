@@ -1,24 +1,24 @@
 // Track recently used files
 
-import { App } from "obsidian";
+// import { App } from "obsidian";
 
-const MAX_NUMBER_OF_BOOKMARKS_FILES_TO_KEEP = 5
+// const MAX_NUMBER_OF_BOOKMARKS_FILES_TO_KEEP = 5
 
-export default class fileBookmarks {
-    app: App;
+// export default class fileBookmarks {
+//     app: App;
 
-    constructor(app: App) { this.app = app; }
+//     constructor(app: App) { this.app = app; }
 
-    addBookmark(filePath: string) {
+//     addBookmark(filePath: string): void {
 
-    }
+//     }
 
-    removeBookmark(filePath: string) {
+//     removeBookmark(filePath: string): void {
         
-    }
+//     }
 
-    persistBookmarks() {
+//     persistBookmarks(): void {
 
-    }
+//     }
 
-}
+// }
