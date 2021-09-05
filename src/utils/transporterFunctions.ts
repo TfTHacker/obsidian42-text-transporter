@@ -64,8 +64,6 @@ function selectCurrentSection(directionUP = true): void {
                 return section.position.start;
             }
         });
-        console.log(0, lastLineOfBlock)
-
         if (lastLineOfBlock === undefined) { // likely empty line is being triggered, nothing to select. so try to select the nearest block
             let nearestBlock = null;
             for (const value of Object.entries(ctx.cache.sections)) {
@@ -85,13 +83,10 @@ function selectCurrentSection(directionUP = true): void {
                 return;
             } 
         }
-        console.log(1)
-
         const curSels = ctx.editor.listSelections();
         if (lastLineOfBlock && lastLineOfBlock.type === "paragraph" && curSels.length === 1 &&
             (curSels[0].anchor.line !== lastLineOfBlock.position.start.line && curSels[0].head.line !== lastLineOfBlock.position.end.line)) {
             // this clause is testing if the line is selected or some aspect of the block. if not a whole block selected, select the block
-            console.log(2)
             ctx.editor.setSelection({ line: lastLineOfBlock.position.start.line, ch: 0 }, { line: lastLineOfBlock.position.end.line, ch: lastLineOfBlock.position.end.col });
         } else {
             // something is selected, so expand the selection
@@ -117,7 +112,6 @@ function selectCurrentSection(directionUP = true): void {
                 if (firstSelectedLine > ctx.cache.sections[i].position.end.line)
                     proceedingBlock = ctx.cache.sections[i];
             }
-
             if (proceedingBlock && directionUP) {
                 ctx.editor.setSelection({ line: proceedingBlock.position.start.line, ch: 0 },
                     { line: currentBlock.position.end.line, ch: ctx.editor.getLine(currentBlock.position.end.line).length });
@@ -140,7 +134,7 @@ const nanoid = customAlphabet('abcdefghijklmnopqrstuvwz', 6);
 // copy the block reference for the current cursor location into the clipboard
 // if header, the header reference is copied into clipobard
 // if it is a block of text, the last line in the block is assigned a reference ID and this is copied into the clipboard
-async function copyBlockRefToClipboard(copyToClipBoard = true): Promise<string> {
+async function copyBlockRefToClipboard(copyToClipBoard = true, copyAsAlias = false, aliasText = "*"): Promise<string> {
     const ctx = getContextObjects();
     const lastLineOfBlock = ctx.cache.sections.find(section => {
         const currentLine = ctx.currentLine;
@@ -149,16 +143,21 @@ async function copyBlockRefToClipboard(copyToClipBoard = true): Promise<string> 
         }
     });
     if (lastLineOfBlock) {
+        const blockPrefix = copyAsAlias===false ? "!" : ""; //if alias, don't do embed preview
+        aliasText = copyAsAlias===true ? "|" + aliasText : "";
         if (lastLineOfBlock.type === "heading") {
-            const headerText: string = ctx.editor.getRange({ line: ctx.currentLine, ch: 0 }, { line: ctx.currentLine, ch: ctx.editor.getLine(ctx.currentLine).length })
-            const block = `![[${ctx.currentFile.name + headerText.trim()}]]`.split("\n").join("");
+            let headerText: string = ctx.editor.getRange({ line: ctx.currentLine, ch: 0 }, { line: ctx.currentLine, ch: ctx.editor.getLine(ctx.currentLine).length })
+            // @ts-ignore
+            headerText  = "#" + headerText.replaceAll("# ","");
+            console.log(`-${headerText}`, lastLineOfBlock)
+            const block = `${blockPrefix}[[${ctx.currentFile.name + headerText.trim()}${aliasText}]]`.split("\n").join("");
             if (copyToClipBoard)
                 navigator.clipboard.writeText(block).then(text => text);
             else
                 return block;
         } else {
             const id = lastLineOfBlock.id ? lastLineOfBlock.id : nanoid();
-            const block = `![[${ctx.currentFile.name}#^${id}]]`.split("\n").join("");
+            const block = `${blockPrefix}[[${ctx.currentFile.name}#^${id}${aliasText}]]`.split("\n").join("");
             if (!lastLineOfBlock.id)
                 ctx.editor.replaceRange(` ^${id}`, { line: Number(lastLineOfBlock.position.end.line), ch: lastLineOfBlock.position.end.col }, { line: Number(lastLineOfBlock.position.end.line), ch: lastLineOfBlock.position.end.col });
             if (copyToClipBoard)

@@ -15,13 +15,13 @@
     "url": "git://github.com/TfTHacker/obsidian42-text-transporter.git"
   },
   "devDependencies": {
-    "@types/node": "^16.7.2",
+    "@types/node": "^16.7.10",
     "@typescript-eslint/eslint-plugin": "^4.30.0",
     "@typescript-eslint/parser": "^4.30.0",
     "eslint": "^7.32.0",
     "obsidian": "^0.12.0",
     "tslib": "^2.3.1",
-    "typescript": "^4.2.4"
+    "typescript": "^4.4.2"
   },
   "dependencies": {
     "flatpickr": "^4.6.9",

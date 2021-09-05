@@ -23,8 +23,12 @@ export default class pluginCommands {
             command: async (): Promise<Array<string>> => transporter.addBlockRefsToSelection()
         },
         {
-            caption: "Copy current block to clipboard as a block reference", shortcut: "CC", menu: true, icon: "blocks",
-            command: async (): Promise<string> => transporter.copyBlockRefToClipboard()
+            caption: "Copy block as a BLOCK REFERENCE", shortcut: "CC", menu: true, icon: "blocks",
+            command: async (): Promise<string> => transporter.copyBlockRefToClipboard(true, false)
+        },
+        {
+            caption: "Copy block as an ALIASED block reference", shortcut: "CA", menu: true, icon: "blocks",
+            command: async (): Promise<string> => transporter.copyBlockRefToClipboard(true, true, this.plugin.settings.blockRefAliasIndicator)
         },
         {
             caption: "Copy line/selection to another file", shortcut: "CLT", menu: true, icon: "right-arrow-with-tail",

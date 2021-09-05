@@ -3,12 +3,14 @@ import ThePlugin from '../main';
 
 export interface Settings {
 	enableRibbon: boolean,
-    enableDebugMode: boolean
+    enableDebugMode: boolean,
+    blockRefAliasIndicator: string
 }
 
 export const DEFAULT_SETTINGS: Settings = {
 	enableRibbon: true,
-    enableDebugMode: false
+    enableDebugMode: false,
+    blockRefAliasIndicator: "*"
 }
 
 export class SettingsTab extends PluginSettingTab {
@@ -39,6 +41,21 @@ export class SettingsTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				});
 			});
+
+        new Setting(containerEl)
+        .setName("Alias Indicator")
+        .setDesc("Indicator used for an aliased block reference.")
+        .addText((text) =>
+            text
+            .setValue(this.plugin.settings.blockRefAliasIndicator)
+            .onChange(async (value) => {
+                if(value.trim()==="")
+                    this.plugin.settings.blockRefAliasIndicator = "*"; //empty value, default to *
+                else
+                    this.plugin.settings.blockRefAliasIndicator = value;
+                await this.plugin.saveSettings();
+            })
+        );
 
         new Setting(containerEl)
         .setName('Debugging support')
