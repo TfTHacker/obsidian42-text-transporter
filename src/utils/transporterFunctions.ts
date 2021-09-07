@@ -365,6 +365,7 @@ async function pullBlockReferenceFromAnotherFile(plugin: ThePlugin): Promise<voi
 } //pullBlockReferenceFromAnotherFile
 
 export {
+    getContextObjects,
     selectCurrentLine, copyBlockRefToClipboard, selectCurrentSection,
     indentifyCurrentSection, copyOrPushLineOrSelectionToNewLocation,
     copyOrPulLineOrSelectionFromAnotherLocation, addBlockRefsToSelection,

@@ -1,9 +1,9 @@
-import { Plugin } from "obsidian";
+import { Plugin,  TFile,View } from "obsidian";
 import fileSystem from "./utils/fileSystem";
 import pluginCommands from "./ui/cpCommands";
 import { Settings, DEFAULT_SETTINGS, SettingsTab } from './ui/settings';
-
 import * as transporter from "./utils/transporterFunctions";
+import fileCacheAnalyzer from "./utils/fileCacheAnalyzer";
 
 export default class ThePlugin extends Plugin {
 	appName = "Obsidian42 - Text Transporter";
@@ -19,6 +19,13 @@ export default class ThePlugin extends Plugin {
 		this.commands = new pluginCommands(this)
 
 		await this.loadSettings();
+
+		window.o42 = {};
+		window.o42.fileCacheAnalyzer = () => {const f = new fileCacheAnalyzer(this, this.app.workspace.activeLeaf.view.file.path)}
+		window.o42.fileCacheAnalyzer();
+
+		
+		
 
 		this.addSettingTab(new SettingsTab(this.app, this));
 
