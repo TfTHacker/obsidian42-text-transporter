@@ -16,18 +16,21 @@ const testFolderExclusion = (folder: string, exclusionFolders: Array<string>): b
 };
 
 const getFiles = async (app: App, rootPath: string, returnType: fileSystemReturnType, responseArray: Array<suggesterItem>, exclusionFolders: Array<string>) => {
-    const list = await app.vault.adapter.list(rootPath);
-    if (returnType === fileSystemReturnType.filesOnly || returnType === fileSystemReturnType.filesAndFolders)
-        for (const file of list.files)
-            if (!file.startsWith('.') && !testFolderExclusion(file, exclusionFolders))
-                responseArray.push({ display: file, info: '' }); //add file to array
 
-    for (const folder of list.folders) {
-        if (!folder.startsWith('.') && !testFolderExclusion(folder + '/', exclusionFolders))
-            if (returnType === fileSystemReturnType.foldersOnly || returnType === fileSystemReturnType.filesAndFolders)
-                responseArray.push({ display: folder + '/', info: '' }); //add file to array
-        await getFiles(app, folder, returnType, responseArray, exclusionFolders);
+    if (returnType === fileSystemReturnType.filesOnly || returnType === fileSystemReturnType.filesAndFolders)
+        for (const file of await app.vault.getMarkdownFiles())
+            if (!testFolderExclusion(file.path, exclusionFolders))
+                responseArray.push({ display: file.path, info: '' }); //add file to array
+
+    if (returnType === fileSystemReturnType.foldersOnly || returnType === fileSystemReturnType.filesAndFolders) {
+        for (const folder of await (await app.vault.adapter.list(rootPath)).folders) {
+            if (!folder.startsWith('.') && !testFolderExclusion(folder + '/', exclusionFolders))
+                if (returnType === fileSystemReturnType.foldersOnly || returnType === fileSystemReturnType.filesAndFolders)
+                    responseArray.push({ display: folder + '/', info: '' }); //add file to array
+            await getFiles(app, folder, returnType, responseArray, exclusionFolders);
+        }
     }
+    
 };
 
 const addLastOpenFiles = async (app: App, responseArray: Array<suggesterItem>) => {

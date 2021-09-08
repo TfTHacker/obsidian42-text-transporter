@@ -11,24 +11,32 @@ export default class pluginCommands {
             command: async (): Promise<void> => transporter.selectCurrentLine()
         },
         {
+            caption: "Select block - previous", shortcut: "BN", menu: true, icon: "highlight-glyph",
+            command: async (): Promise<void> => transporter.selectAdjacentBlock(this.plugin, false)
+        },
+        {
+            caption: "Select block - next", shortcut: "BP", menu: true, icon: "highlight-glyph",
+            command: async (): Promise<void> => transporter.selectAdjacentBlock(this.plugin, true)
+        },
+        {
             caption: "Select current line and expand up into previous block", shortcut: "SP", menu: true, icon: "highlight-glyph",
-            command: async (): Promise<void> => transporter.selectCurrentSection(true)
+            command: async (): Promise<void> => transporter.selectCurrentSection(this.plugin, true)
         },
         {
             caption: "Select current line and expand down into next block", shortcut: "SN", menu: true, icon: "highlight-glyph",
-            command: async (): Promise<void> => transporter.selectCurrentSection(false)
+            command: async (): Promise<void> => transporter.selectCurrentSection(this.plugin, false)
         },
         {
-            caption: "Add block ref ID's to selection", shortcut: "ABI", menu: true, icon: "blocks",
-            command: async (): Promise<Array<string>> => transporter.addBlockRefsToSelection()
+            caption: "Add block ref ID's to selection and Copy them to clipboard", shortcut: "ABI", menu: true, icon: "blocks",
+            command: async (): Promise<Array<string>> => transporter.addBlockRefsToSelection(this.plugin, true)
         },
         {
             caption: "Copy block as a BLOCK REFERENCE", shortcut: "CC", menu: true, icon: "blocks",
-            command: async (): Promise<string> => transporter.copyBlockRefToClipboard(true, false)
+            command: async (): Promise<string> => transporter.copyBlockRefToClipboard(this.plugin, true, false)
         },
         {
             caption: "Copy block as an ALIASED block reference", shortcut: "CA", menu: true, icon: "blocks",
-            command: async (): Promise<string> => transporter.copyBlockRefToClipboard(true, true, this.plugin.settings.blockRefAliasIndicator)
+            command: async (): Promise<string> => transporter.copyBlockRefToClipboard(this.plugin, true, true, this.plugin.settings.blockRefAliasIndicator)
         },
         {
             caption: "Copy line/selection to another file", shortcut: "CLT", menu: true, icon: "right-arrow-with-tail",

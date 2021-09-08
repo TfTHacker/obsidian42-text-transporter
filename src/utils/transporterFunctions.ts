@@ -11,7 +11,7 @@ function getContextObjects() {
     const cache: CachedMetadata = this.app.metadataCache.getFileCache(currentFile)
     const editor: Editor = currentView.editor;
     const currentLine = Number(editor.getCursor().line);
-    let currentLineEmpty: boolean = editor.getLine(currentLine).trim().length===0 ? true : false;
+    let currentLineEmpty: boolean = editor.getLine(currentLine).trim().length === 0 ? true : false;
     return { currentView, currentFile, cache, editor, currentLine, currentLineEmpty };
 }
 
@@ -23,25 +23,25 @@ function selectCurrentLine(): void {
 
 // select the next block  or previous block.
 // if nextBlock true - goto next, if false, go to previous
-function selectionAdjacentBlock(plugin: ThePlugin, nextBlock: boolean): void {
+function selectAdjacentBlock(plugin: ThePlugin, nextBlock: boolean): void {
     const ctx = getContextObjects();
     const f = new fileCacheAnalyzer(plugin, ctx.currentFile.name);
-    let nextBlockSelection:cacheDetails;
-    if(nextBlock) 
-        if(ctx.currentLineEmpty)
+    let nextBlockSelection: cacheDetails;
+    if (nextBlock)
+        if (ctx.currentLineEmpty)
             nextBlockSelection = f.getBlockAtLine(ctx.currentLine, true); //nothing selected, go to nearst next block
         else
             nextBlockSelection = f.getBlockAfterLine(ctx.currentLine);
     else
-        if(ctx.currentLineEmpty)
+        if (ctx.currentLineEmpty)
             nextBlockSelection = f.getBlockAtLine(ctx.currentLine, false); //nothing selected, go to nearst previous block
-        else    
+        else
             nextBlockSelection = f.getBlockBeforeLine(ctx.currentLine);
-    if(nextBlockSelection!==null) {
-        const start:EditorPosition = { line: nextBlockSelection.position.start.line, ch: nextBlockSelection.position.start.col };
-        const end:EditorPosition = { line: nextBlockSelection.position.end.line, ch: nextBlockSelection.position.end.col };
-        ctx.editor.setSelection( start, end );
-        ctx.editor.scrollIntoView(  { from: start, to: end });
+    if (nextBlockSelection !== null) {
+        const start: EditorPosition = { line: nextBlockSelection.position.start.line, ch: nextBlockSelection.position.start.col };
+        const end: EditorPosition = { line: nextBlockSelection.position.end.line, ch: nextBlockSelection.position.end.col };
+        ctx.editor.setSelection(start, end);
+        ctx.editor.scrollIntoView({ from: start, to: end });
     }
 }
 
@@ -51,25 +51,26 @@ function indentifyCurrentSection(): SectionCache {
     return ctx.cache.sections.find(section => section.position.start.line <= ctx.currentLine && section.position.end.line >= ctx.currentLine);
 }
 
-// Select the current section in the editor of activeLeaf
-function selectCurrentSection(directionUP = true): void {
+// Select the current section in the editor of activeLeaf and extend the selection in a given direction
+function selectCurrentSection(plugin: ThePlugin, directionUP = true): void {
     const ctx = getContextObjects();
+    const f = new fileCacheAnalyzer(plugin, ctx.currentFile.name);
     const currentRange: EditorSelection[] = ctx.editor.listSelections();
     if (currentRange[0].anchor.line === currentRange[0].head.line &&
         (currentRange[0].head.ch !== ctx.editor.getSelection().length) || (currentRange[0].head.ch === 0 && currentRange[0].anchor.ch === 0) &&
         (ctx.editor.getRange({ line: ctx.currentLine, ch: ctx.editor.getLine(ctx.currentLine).length }, { line: ctx.currentLine, ch: 0 }).length !== 0)) {
         // line not selected, so select the current line
         ctx.editor.setSelection({ line: ctx.currentLine, ch: 0 }, { line: ctx.currentLine, ch: ctx.editor.getLine(ctx.currentLine).length });
-    } else {
+    } else {        
         // test if this is a block, if it is, select it
-        const lastLineOfBlock = ctx.cache.sections.find(section => {
+        const lastLineOfBlock = f.details.find(section => {
             if (ctx.currentLine >= Number(section.position.start.line) && ctx.currentLine <= Number(section.position.end.line)) {
                 return section.position.start;
             }
         });
         if (lastLineOfBlock === undefined) { // likely empty line is being triggered, nothing to select. so try to select the nearest block
             let nearestBlock = null;
-            for (const value of Object.entries(ctx.cache.sections)) {
+            for (const value of Object.entries(f.details)) {
                 console.log(value)
                 if (value.position) {
                     if (directionUP === false && ctx.currentLine < Number(value.position.end.line) && nearestBlock === null) {
@@ -79,12 +80,12 @@ function selectCurrentSection(directionUP = true): void {
                     }
                 }
             }
-            if(nearestBlock===null && ctx.currentLine === 0 && ctx.cache.sections.length>0) 
+            if (nearestBlock === null && ctx.currentLine === 0 && f.details.length > 0)
                 nearestBlock = ctx.cache.sections[0]; // first line, but no text to select, so select first  block
             if (nearestBlock !== null) {
                 ctx.editor.setSelection({ line: nearestBlock.position.start.line, ch: 0 }, { line: nearestBlock.position.end.line, ch: nearestBlock.position.end.col });
                 return;
-            } 
+            }
         }
         const curSels = ctx.editor.listSelections();
         if (lastLineOfBlock && lastLineOfBlock.type === "paragraph" && curSels.length === 1 &&
@@ -105,15 +106,15 @@ function selectCurrentSection(directionUP = true): void {
                 firstSelectedLine = currentRange[0].head.line;
                 lastSelectedLine = currentRange[0].anchor.line;
             }
-            for (let i = 0; i < ctx.cache.sections.length; i++) {
-                if (ctx.currentLine >= ctx.cache.sections[i].position.end.line) {
-                    currentBlock = ctx.cache.sections[i];
+            for (let i = 0; i < f.details.length; i++) {
+                if (ctx.currentLine >=  f.details[i].position.end.line) {
+                    currentBlock =  f.details[i];
                     try {
-                        nextBlock = ctx.cache.sections[i + 1];
+                        nextBlock =  f.details[i + 1];
                     } catch (e) { console.log(e) }
                 }
-                if (firstSelectedLine > ctx.cache.sections[i].position.end.line)
-                    proceedingBlock = ctx.cache.sections[i];
+                if (firstSelectedLine >  f.details[i].position.end.line)
+                    proceedingBlock =  f.details[i];
             }
             if (proceedingBlock && directionUP) {
                 ctx.editor.setSelection({ line: proceedingBlock.position.start.line, ch: 0 },
@@ -134,6 +135,10 @@ function selectCurrentSection(directionUP = true): void {
 
 const nanoid = customAlphabet('abcdefghijklmnopqrstuvwz', 6);
 
+function cleanupHeaderNameForBlockReference(header:string): string {
+    return header.replaceAll("[", "").replaceAll("]", "").replaceAll("#", "").replaceAll("|", "");
+}
+
 // copy the block reference for the current cursor location into the clipboard
 // if header, the header reference is copied into clipobard
 // if it is a block of text, the last line in the block is assigned a reference ID and this is copied into the clipboard
@@ -141,67 +146,75 @@ const nanoid = customAlphabet('abcdefghijklmnopqrstuvwz', 6);
 async function copyBlockRefToClipboard(plugin: ThePlugin, copyToClipBoard = true, copyAsAlias = false, aliasText = "*"): Promise<string> {
     const ctx = getContextObjects();
     const f = new fileCacheAnalyzer(plugin, ctx.currentFile.name);
-    const currentBlock = f.getBlockAtLine(ctx.currentLine,true);
+    const currentBlock = f.getBlockAtLine(ctx.currentLine, true);
 
-    const blockPrefix = copyAsAlias===false ? "!" : ""; //if alias, don't do embed preview
-    aliasText = copyAsAlias===true ? "|" + aliasText : "";
-    
+    const blockPrefix = copyAsAlias === false ? "!" : ""; //if alias, don't do embed preview
+    aliasText = copyAsAlias === true ? "|" + aliasText : "";
+
     if (currentBlock.type === "heading") {
         let headerText: string = ctx.editor.getRange({ line: ctx.currentLine, ch: 0 }, { line: ctx.currentLine, ch: ctx.editor.getLine(ctx.currentLine).length })
-        headerText = currentBlock.headingText.replaceAll("[","").replaceAll("]","").replaceAll("#","").replaceAll("|","");
-        headerText  = "#" + headerText;
+        headerText = currentBlock.headingText.replaceAll("[", "").replaceAll("]", "").replaceAll("#", "").replaceAll("|", "");
+        headerText = "#" + cleanupHeaderNameForBlockReference(headerText);
         const block = `${blockPrefix}[[${ctx.currentFile.name + headerText.trim()}${aliasText}]]`.split("\n").join("");
         if (copyToClipBoard)
             navigator.clipboard.writeText(block).then(text => text);
         else
             return block;
-    } else if( currentBlock.type === "paragraph" || currentBlock.type === "list" ) {
-            const id = currentBlock.blockId ? currentBlock.blockId : nanoid();
-            const block = `${blockPrefix}[[${ctx.currentFile.name}#^${id}${aliasText}]]`.split("\n").join("");
-            if (!currentBlock.blockId)
-                ctx.editor.replaceRange(` ^${id}`, { line: Number(currentBlock.position.end.line), ch: currentBlock.position.end.col }, { line: Number(currentBlock.position.end.line), ch: currentBlock.position.end.col });
-            if (copyToClipBoard)
-                navigator.clipboard.writeText(block).then(text => text);
-            else
-                return block;
+    } else if (currentBlock.type === "paragraph" || currentBlock.type === "list") {
+        const id = currentBlock.blockId ? currentBlock.blockId : nanoid();
+        const block = `${blockPrefix}[[${ctx.currentFile.name}#^${id}${aliasText}]]`.split("\n").join("");
+        if (!currentBlock.blockId)
+            ctx.editor.replaceRange(` ^${id}`, { line: Number(currentBlock.position.end.line), ch: currentBlock.position.end.col }, { line: Number(currentBlock.position.end.line), ch: currentBlock.position.end.col });
+        if (copyToClipBoard)
+            navigator.clipboard.writeText(block).then(text => text);
+        else
+            return block;
     } else
-        new  Notice("A block reference cannot be generated for this line.")
+        new Notice("A block reference cannot be generated for this line.")
 } //copyBlockRefToClipboard
 
 // loops through current selected text and adds block refs to each paragraph
 // returns all block refs found in selection
-async function addBlockRefsToSelection(): Promise<Array<string>> {
-    console.log('addBlockRefsToSelection')
+async function addBlockRefsToSelection(plugin: ThePlugin, copyToClipbard: boolean): Promise<Array<string>> {
     const ctx = getContextObjects();
+    const f = new fileCacheAnalyzer(plugin, ctx.currentFile.name);
     const curSels = ctx.editor.listSelections();
     let blockRefs = [];
     for (const sel of curSels) {
         const startLine = sel.anchor.line > sel.head.line ? sel.head.line : sel.anchor.line;
         const endLine = sel.anchor.line > sel.head.line ? sel.anchor.line : sel.head.line;
         for (let selectedLineInEditor = startLine; selectedLineInEditor <= endLine; selectedLineInEditor++) {
-            for (let sectionCounter = 0; sectionCounter < ctx.cache.sections.length; sectionCounter++) {
-                const section = ctx.cache.sections[sectionCounter];
+            for (let sectionCounter = 0; sectionCounter < f.details.length; sectionCounter++) {
+                const section = f.details[sectionCounter];
                 if (selectedLineInEditor >= section.position.start.line && selectedLineInEditor <= section.position.end.line) {
-                    if (section.type === "paragraph" && !section.id) {
+                    if ( (section.type === "paragraph" || section.type === "list") && !section.blockId) {
                         const newId = nanoid();
                         ctx.editor.replaceRange(` ^${newId}`, { line: Number(section.position.end.line), ch: section.position.end.col }, { line: Number(section.position.end.line), ch: section.position.end.col });
                         blockRefs.push("#^" + newId);
-                        selectedLineInEditor = section.position.end.line + 1;
+                        selectedLineInEditor = section.position.end.line;
                         break;
-                    } else if (section.type === "paragraph") {
-                        blockRefs.push("#^" + section.id);
-                        selectedLineInEditor = section.position.end.line + 1;
+                    } else if (section.type === "paragraph" || section.type === "list" ) {
+                        blockRefs.push("#^" + section.blockId);
+                        selectedLineInEditor = section.position.end.line;
                         break;
                     } else if (section.type === "heading") {
-                        const heading = ctx.cache.headings.find(h => h.position.start.line === section.position.start.line);
-                        blockRefs.push("#".repeat(heading.level) + heading.heading);
-                        selectedLineInEditor = section.position.end.line + 1;
+                        blockRefs.push("#" + cleanupHeaderNameForBlockReference(section.headingText));
+                        selectedLineInEditor = section.position.end.line;
                         break;
                     }
                 }
             }
         } //selectedLineInEditor
     } //curSels
+
+    if(copyToClipbard && blockRefs.length>0) {
+        let block = "";
+        blockRefs.forEach( b => block+=`![[${ctx.currentFile.name}${b}]]\n`);
+        navigator.clipboard.writeText(block).then(text => text);
+    }
+
+    
+
     return blockRefs;
 } //addBlockRefsToSelection()
 
@@ -295,7 +308,7 @@ async function copyOrPulLineOrSelectionFromAnotherLocation(plugin: ThePlugin, co
 //copy a block reference of the current line to another file
 async function pushBlockReferenceToAnotherFile(plugin: ThePlugin): Promise<void> {
     await displayFileLineSuggester(plugin, false, async (targetFileName, fileContentsArray, startLine) => {
-        const results = await addBlockRefsToSelection();
+        const results = await addBlockRefsToSelection(plugin,false);
         let blockRefs = "";
         const fileName = getContextObjects().currentFile.path;
         if (results.length > 0) {
@@ -315,28 +328,27 @@ async function pushBlockReferenceToAnotherFile(plugin: ThePlugin): Promise<void>
 // pull a block reference from another file and insert into the current location
 async function pullBlockReferenceFromAnotherFile(plugin: ThePlugin): Promise<void> {
     await displayFileLineSuggester(plugin, true, async (targetFileName, fileContentsArray, startLine, endLine) => {
-        const cache = await plugin.app.metadataCache.getCache(targetFileName);
+        const f = new fileCacheAnalyzer(plugin, targetFileName);
         let fileContents = (await plugin.app.vault.adapter.read(targetFileName)).split("\n");
         let fileChanged = false;
         let blockRefs = [];
         for (let lineNumber = startLine; lineNumber <= endLine; lineNumber++) {
-            for (let sectionCounter = 0; sectionCounter < cache.sections.length; sectionCounter++) {
-                const section = cache.sections[sectionCounter];
+            for (let sectionCounter = 0; sectionCounter < f.details.length; sectionCounter++) {
+                const section = f.details[sectionCounter];
                 if (lineNumber >= section.position.start.line && lineNumber <= section.position.end.line) {
-                    if (section.type === "paragraph" && !section.id) {
+                    if ((section.type === "paragraph" || section.type === "list") && !section.blockId) {
                         const newId = nanoid();
                         fileContents.splice(section.position.end.line, 1, fileContents[section.position.end.line] + " ^" + newId);
                         blockRefs.push("#^" + newId);
                         fileChanged = true;
                         lineNumber = section.position.end.line;
                         break;
-                    } else if (section.type === "paragraph") {
-                        blockRefs.push("#^" + section.id);
+                    } else if (section.type === "paragraph" || section.type === "list") {
+                        blockRefs.push("#^" + section.blockId);
                         lineNumber = section.position.end.line;
                         break;
                     } else if (section.type === "heading") {
-                        const heading = cache.headings.find(h => h.position.start.line === section.position.start.line);
-                        blockRefs.push("#".repeat(heading.level) + heading.heading);
+                        const heading =  cleanupHeaderNameForBlockReference(section.headingText);
                         lineNumber = section.position.end.line;
                         break;
                     }
@@ -364,7 +376,7 @@ async function pullBlockReferenceFromAnotherFile(plugin: ThePlugin): Promise<voi
 } //pullBlockReferenceFromAnotherFile
 
 export {
-    getContextObjects, selectionAdjacentBlock,
+    getContextObjects, selectAdjacentBlock,
     selectCurrentLine, copyBlockRefToClipboard, selectCurrentSection,
     indentifyCurrentSection, copyOrPushLineOrSelectionToNewLocation,
     copyOrPulLineOrSelectionFromAnotherLocation, addBlockRefsToSelection,
