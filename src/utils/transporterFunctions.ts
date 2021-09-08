@@ -1,10 +1,9 @@
-import { customAlphabet, nanoid } from 'nanoid';
-import { CachedMetadata, Editor, TFile, View, Notice, EditorSelection, SectionCache } from "obsidian";
+import { customAlphabet } from 'nanoid';
+import { CachedMetadata, Editor, TFile, View, Notice, EditorSelection, SectionCache, EditorPosition } from "obsidian";
 import { genericFuzzySuggester } from '../ui/genericFuzzySuggester';
 import ThePlugin from '../main';
 import { suggesterItem } from '../ui/genericFuzzySuggester';
-import { createTextChangeRange } from 'typescript';
-import { Console } from 'console';
+import { fileCacheAnalyzer, cacheDetails } from './fileCacheAnalyzer';
 
 function getContextObjects() {
     const currentView: View = this.app.workspace.activeLeaf.view;
@@ -12,34 +11,38 @@ function getContextObjects() {
     const cache: CachedMetadata = this.app.metadataCache.getFileCache(currentFile)
     const editor: Editor = currentView.editor;
     const currentLine = Number(editor.getCursor().line);
-    return { currentView, currentFile, cache, editor, currentLine };
+    let currentLineEmpty: boolean = editor.getLine(currentLine).trim().length===0 ? true : false;
+    return { currentView, currentFile, cache, editor, currentLine, currentLineEmpty };
 }
-
-// put all sections into groupings of sections under there headings.
-// ctx is the context object from 
-// function groupifySections(ctx): void {
-//     let headingIndex = 0;
-//     let currentHeadingLevel = 0;
-//     let grouping = 0;
-//     for (let i = 0; i < ctx.cache.sections.length; i++) {
-//         const sec = ctx.cache.sections[i];
-//         if (sec.type === "heading") {
-//             currentHeadingLevel = Number(ctx.cache.headings[headingIndex].level);
-//             // sec.hT = ctx.cache.headings[headingIndex].heading;
-//             headingIndex += 1;
-//             if (currentHeadingLevel === 1) grouping += 1;
-//         }
-
-//         sec.grp = grouping;
-//         sec.hL = currentHeadingLevel;
-//     }
-//     return ctx.cache.sections;
-// }
 
 // Select the current line in the editor of activeLeaf
 function selectCurrentLine(): void {
     const ctx = getContextObjects();
     ctx.editor.setSelection({ line: ctx.currentLine, ch: 0 }, { line: ctx.currentLine, ch: ctx.editor.getLine(ctx.editor.getCursor().line).length });
+}
+
+// select the next block  or previous block.
+// if nextBlock true - goto next, if false, go to previous
+function selectionAdjacentBlock(plugin: ThePlugin, nextBlock: boolean): void {
+    const ctx = getContextObjects();
+    const f = new fileCacheAnalyzer(plugin, ctx.currentFile.name);
+    let nextBlockSelection:cacheDetails;
+    if(nextBlock) 
+        if(ctx.currentLineEmpty)
+            nextBlockSelection = f.getBlockAtLine(ctx.currentLine, true); //nothing selected, go to nearst next block
+        else
+            nextBlockSelection = f.getBlockAfterLine(ctx.currentLine);
+    else
+        if(ctx.currentLineEmpty)
+            nextBlockSelection = f.getBlockAtLine(ctx.currentLine, false); //nothing selected, go to nearst previous block
+        else    
+            nextBlockSelection = f.getBlockBeforeLine(ctx.currentLine);
+    if(nextBlockSelection!==null) {
+        const start:EditorPosition = { line: nextBlockSelection.position.start.line, ch: nextBlockSelection.position.start.col };
+        const end:EditorPosition = { line: nextBlockSelection.position.end.line, ch: nextBlockSelection.position.end.col };
+        ctx.editor.setSelection( start, end );
+        ctx.editor.scrollIntoView(  { from: start, to: end });
+    }
 }
 
 //get the current block information from the cache
@@ -134,39 +137,35 @@ const nanoid = customAlphabet('abcdefghijklmnopqrstuvwz', 6);
 // copy the block reference for the current cursor location into the clipboard
 // if header, the header reference is copied into clipobard
 // if it is a block of text, the last line in the block is assigned a reference ID and this is copied into the clipboard
-async function copyBlockRefToClipboard(copyToClipBoard = true, copyAsAlias = false, aliasText = "*"): Promise<string> {
+// copyAsAlias = true = make an aliased block ref
+async function copyBlockRefToClipboard(plugin: ThePlugin, copyToClipBoard = true, copyAsAlias = false, aliasText = "*"): Promise<string> {
     const ctx = getContextObjects();
-    const lastLineOfBlock = ctx.cache.sections.find(section => {
-        const currentLine = ctx.currentLine;
-        if (currentLine >= Number(section.position.start.line) && currentLine <= Number(section.position.end.line)) {
-            return section.position.start;
-        }
-    });
-    if (lastLineOfBlock) {
-        const blockPrefix = copyAsAlias===false ? "!" : ""; //if alias, don't do embed preview
-        aliasText = copyAsAlias===true ? "|" + aliasText : "";
-        if (lastLineOfBlock.type === "heading") {
-            let headerText: string = ctx.editor.getRange({ line: ctx.currentLine, ch: 0 }, { line: ctx.currentLine, ch: ctx.editor.getLine(ctx.currentLine).length })
-            // @ts-ignore
-            headerText  = "#" + headerText.replaceAll("# ","");
-            console.log(`-${headerText}`, lastLineOfBlock)
-            const block = `${blockPrefix}[[${ctx.currentFile.name + headerText.trim()}${aliasText}]]`.split("\n").join("");
-            if (copyToClipBoard)
-                navigator.clipboard.writeText(block).then(text => text);
-            else
-                return block;
-        } else {
-            const id = lastLineOfBlock.id ? lastLineOfBlock.id : nanoid();
+    const f = new fileCacheAnalyzer(plugin, ctx.currentFile.name);
+    const currentBlock = f.getBlockAtLine(ctx.currentLine,true);
+
+    const blockPrefix = copyAsAlias===false ? "!" : ""; //if alias, don't do embed preview
+    aliasText = copyAsAlias===true ? "|" + aliasText : "";
+    
+    if (currentBlock.type === "heading") {
+        let headerText: string = ctx.editor.getRange({ line: ctx.currentLine, ch: 0 }, { line: ctx.currentLine, ch: ctx.editor.getLine(ctx.currentLine).length })
+        headerText = currentBlock.headingText.replaceAll("[","").replaceAll("]","").replaceAll("#","").replaceAll("|","");
+        headerText  = "#" + headerText;
+        const block = `${blockPrefix}[[${ctx.currentFile.name + headerText.trim()}${aliasText}]]`.split("\n").join("");
+        if (copyToClipBoard)
+            navigator.clipboard.writeText(block).then(text => text);
+        else
+            return block;
+    } else if( currentBlock.type === "paragraph" || currentBlock.type === "list" ) {
+            const id = currentBlock.blockId ? currentBlock.blockId : nanoid();
             const block = `${blockPrefix}[[${ctx.currentFile.name}#^${id}${aliasText}]]`.split("\n").join("");
-            if (!lastLineOfBlock.id)
-                ctx.editor.replaceRange(` ^${id}`, { line: Number(lastLineOfBlock.position.end.line), ch: lastLineOfBlock.position.end.col }, { line: Number(lastLineOfBlock.position.end.line), ch: lastLineOfBlock.position.end.col });
+            if (!currentBlock.blockId)
+                ctx.editor.replaceRange(` ^${id}`, { line: Number(currentBlock.position.end.line), ch: currentBlock.position.end.col }, { line: Number(currentBlock.position.end.line), ch: currentBlock.position.end.col });
             if (copyToClipBoard)
                 navigator.clipboard.writeText(block).then(text => text);
             else
                 return block;
-        }
     } else
-        new Notice("The current cursor location is not a heading or block of text.");
+        new  Notice("A block reference cannot be generated for this line.")
 } //copyBlockRefToClipboard
 
 // loops through current selected text and adds block refs to each paragraph
@@ -365,7 +364,7 @@ async function pullBlockReferenceFromAnotherFile(plugin: ThePlugin): Promise<voi
 } //pullBlockReferenceFromAnotherFile
 
 export {
-    getContextObjects,
+    getContextObjects, selectionAdjacentBlock,
     selectCurrentLine, copyBlockRefToClipboard, selectCurrentSection,
     indentifyCurrentSection, copyOrPushLineOrSelectionToNewLocation,
     copyOrPulLineOrSelectionFromAnotherLocation, addBlockRefsToSelection,
