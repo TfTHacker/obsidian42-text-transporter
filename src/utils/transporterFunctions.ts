@@ -1,17 +1,18 @@
 import { customAlphabet } from 'nanoid';
-import { CachedMetadata, Editor, TFile, View, Notice, EditorSelection, SectionCache, EditorPosition } from "obsidian";
+import { CachedMetadata, Editor, TFile, View, Notice, EditorSelection, SectionCache, EditorPosition, moment } from "obsidian";
 import { genericFuzzySuggester } from '../ui/genericFuzzySuggester';
 import ThePlugin from '../main';
 import { suggesterItem } from '../ui/genericFuzzySuggester';
 import { fileCacheAnalyzer, cacheDetails } from './fileCacheAnalyzer';
+import { createDailyNote, getAllDailyNotes,  getDailyNote } from 'obsidian-daily-notes-interface';
 
-function getContextObjects() {
+function getContextObjects(): any {
     const currentView: View = this.app.workspace.activeLeaf.view;
     const currentFile: TFile = currentView.file;
     const cache: CachedMetadata = this.app.metadataCache.getFileCache(currentFile)
     const editor: Editor = currentView.editor;
     const currentLine = Number(editor.getCursor().line);
-    let currentLineEmpty: boolean = editor.getLine(currentLine).trim().length === 0 ? true : false;
+    const currentLineEmpty: boolean = editor.getLine(currentLine).trim().length === 0 ? true : false;
     return { currentView, currentFile, cache, editor, currentLine, currentLineEmpty };
 }
 
@@ -25,7 +26,7 @@ function selectCurrentLine(): void {
 // if nextBlock true - goto next, if false, go to previous
 function selectAdjacentBlock(plugin: ThePlugin, nextBlock: boolean): void {
     const ctx = getContextObjects();
-    const f = new fileCacheAnalyzer(plugin, ctx.currentFile.name);
+    const f = new fileCacheAnalyzer(plugin, ctx.currentFile.path);
     let nextBlockSelection: cacheDetails;
     if (nextBlock)
         if (ctx.currentLineEmpty)
@@ -54,7 +55,7 @@ function indentifyCurrentSection(): SectionCache {
 // Select the current section in the editor of activeLeaf and extend the selection in a given direction
 function selectCurrentSection(plugin: ThePlugin, directionUP = true): void {
     const ctx = getContextObjects();
-    const f = new fileCacheAnalyzer(plugin, ctx.currentFile.name);
+    const f = new fileCacheAnalyzer(plugin, ctx.currentFile.path);
     const currentRange: EditorSelection[] = ctx.editor.listSelections();
     if (currentRange[0].anchor.line === currentRange[0].head.line &&
         (currentRange[0].head.ch !== ctx.editor.getSelection().length) || (currentRange[0].head.ch === 0 && currentRange[0].anchor.ch === 0) &&
@@ -71,7 +72,6 @@ function selectCurrentSection(plugin: ThePlugin, directionUP = true): void {
         if (lastLineOfBlock === undefined) { // likely empty line is being triggered, nothing to select. so try to select the nearest block
             let nearestBlock = null;
             for (const value of Object.entries(f.details)) {
-                console.log(value)
                 if (value.position) {
                     if (directionUP === false && ctx.currentLine < Number(value.position.end.line) && nearestBlock === null) {
                         nearestBlock = value;
@@ -145,7 +145,7 @@ function cleanupHeaderNameForBlockReference(header:string): string {
 // copyAsAlias = true = make an aliased block ref
 async function copyBlockRefToClipboard(plugin: ThePlugin, copyToClipBoard = true, copyAsAlias = false, aliasText = "*"): Promise<string> {
     const ctx = getContextObjects();
-    const f = new fileCacheAnalyzer(plugin, ctx.currentFile.name);
+    const f = new fileCacheAnalyzer(plugin, ctx.currentFile.path);
     const currentBlock = f.getBlockAtLine(ctx.currentLine, true);
 
     const blockPrefix = copyAsAlias === false ? "!" : ""; //if alias, don't do embed preview
@@ -177,9 +177,9 @@ async function copyBlockRefToClipboard(plugin: ThePlugin, copyToClipBoard = true
 // returns all block refs found in selection
 async function addBlockRefsToSelection(plugin: ThePlugin, copyToClipbard: boolean): Promise<Array<string>> {
     const ctx = getContextObjects();
-    const f = new fileCacheAnalyzer(plugin, ctx.currentFile.name);
+    const f = new fileCacheAnalyzer(plugin, ctx.currentFile.path);
     const curSels = ctx.editor.listSelections();
-    let blockRefs = [];
+    const blockRefs = [];
     for (const sel of curSels) {
         const startLine = sel.anchor.line > sel.head.line ? sel.head.line : sel.anchor.line;
         const endLine = sel.anchor.line > sel.head.line ? sel.anchor.line : sel.head.line;
@@ -212,9 +212,6 @@ async function addBlockRefsToSelection(plugin: ThePlugin, copyToClipbard: boolea
         blockRefs.forEach( b => block+=`![[${ctx.currentFile.name}${b}]]\n`);
         navigator.clipboard.writeText(block).then(text => text);
     }
-
-    
-
     return blockRefs;
 } //addBlockRefsToSelection()
 
@@ -222,13 +219,29 @@ async function addBlockRefsToSelection(plugin: ThePlugin, copyToClipbard: boolea
 // Callback function  will receive: Path+FileName, file contents as an array and line choosen
 // if returnEndPoint = true, another suggester is shown so user can select endpoint of selection from file
 async function displayFileLineSuggester(plugin: ThePlugin, returnEndPoint: boolean, callback): Promise<void> {
+    const activeFile = getContextObjects().currentFile.path;
+    let fileList: Array<suggesterItem> = await plugin.fs.getAllFiles("/");
+    for (let i = 0; i < fileList.length; i++) 
+        if(fileList[i].info.localeCompare(activeFile, undefined, { sensitivity: 'base' })===0) {
+            fileList.splice(i,1);
+            break;
+        }
+    
     const chooser = new genericFuzzySuggester(plugin);
-    chooser.setSuggesterData(await plugin.fs.getAllFiles("/"));
+    chooser.setSuggesterData(fileList);
     chooser.setPlaceholder("Select a file")
 
     await chooser.display(async (i: suggesterItem) => {
         // @ts-ignore
-        const targetFileName = i.item.display;
+        let targetFileName =  i.item.info;
+
+        if(plugin.settings.enableDNP && targetFileName ===  plugin.dnpHeaderForFileSelector ) {
+            let dnp = getDailyNote(moment(), getAllDailyNotes());
+            if(dnp===null)
+                dnp = await createDailyNote(moment());
+            targetFileName = dnp.path;
+        }
+
         const curContent = await plugin.app.vault.adapter.read(targetFileName);
         const fileContentsArray: Array<suggesterItem> = [];
 
@@ -312,7 +325,7 @@ async function pushBlockReferenceToAnotherFile(plugin: ThePlugin): Promise<void>
         let blockRefs = "";
         const fileName = getContextObjects().currentFile.path;
         if (results.length > 0) {
-            for (let ref of results)
+            for (const ref of results)
                 blockRefs += `![[${fileName}${ref}]]\n`;
             blockRefs = blockRefs.substring(0, blockRefs.length - 1);
             fileContentsArray.splice(Number(startLine) + 1, 0, { display: blockRefs, info: "" });
@@ -329,9 +342,9 @@ async function pushBlockReferenceToAnotherFile(plugin: ThePlugin): Promise<void>
 async function pullBlockReferenceFromAnotherFile(plugin: ThePlugin): Promise<void> {
     await displayFileLineSuggester(plugin, true, async (targetFileName, fileContentsArray, startLine, endLine) => {
         const f = new fileCacheAnalyzer(plugin, targetFileName);
-        let fileContents = (await plugin.app.vault.adapter.read(targetFileName)).split("\n");
+        const fileContents = (await plugin.app.vault.adapter.read(targetFileName)).split("\n");
         let fileChanged = false;
-        let blockRefs = [];
+        const blockRefs = [];
         for (let lineNumber = startLine; lineNumber <= endLine; lineNumber++) {
             for (let sectionCounter = 0; sectionCounter < f.details.length; sectionCounter++) {
                 const section = f.details[sectionCounter];
@@ -349,6 +362,7 @@ async function pullBlockReferenceFromAnotherFile(plugin: ThePlugin): Promise<voi
                         break;
                     } else if (section.type === "heading") {
                         const heading =  cleanupHeaderNameForBlockReference(section.headingText);
+                        blockRefs.push("#" + heading);
                         lineNumber = section.position.end.line;
                         break;
                     }

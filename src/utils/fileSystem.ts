@@ -1,4 +1,5 @@
 import { App } from "obsidian";
+import ThePlugin from "../main";
 import { suggesterItem } from "../ui/genericFuzzySuggester";
 
 enum fileSystemReturnType {
@@ -20,7 +21,7 @@ const getFiles = async (app: App, rootPath: string, returnType: fileSystemReturn
     if (returnType === fileSystemReturnType.filesOnly || returnType === fileSystemReturnType.filesAndFolders)
         for (const file of await app.vault.getMarkdownFiles())
             if (!testFolderExclusion(file.path, exclusionFolders))
-                responseArray.push({ display: file.path, info: '' }); //add file to array
+                responseArray.push({ display: file.path, info: file.path }); //add file to array
 
     if (returnType === fileSystemReturnType.foldersOnly || returnType === fileSystemReturnType.filesAndFolders) {
         for (const folder of await (await app.vault.adapter.list(rootPath)).folders) {
@@ -30,24 +31,43 @@ const getFiles = async (app: App, rootPath: string, returnType: fileSystemReturn
             await getFiles(app, folder, returnType, responseArray, exclusionFolders);
         }
     }
-    
+
 };
 
 const addLastOpenFiles = async (app: App, responseArray: Array<suggesterItem>) => {
-    const lastOpenFiles = app.workspace.getLastOpenFiles().reverse();
-    for (let index = 0; index < responseArray.length; index++) 
-        if(lastOpenFiles.includes( responseArray[index].display ))
-            responseArray.splice(index,1)
-    
-    for (const recentFile of lastOpenFiles)
-        responseArray.unshift({ display: recentFile, info: '' }); //add file to array        
+    let lastOpenFiles = app.workspace.getLastOpenFiles();
+    if (lastOpenFiles.length === 0) return
+
+    //confirm file exists
+    for (let iLF = 0; iLF < lastOpenFiles.length; iLF++) 
+        if(await app.vault.adapter.exists(lastOpenFiles[iLF])===false) 
+            lastOpenFiles.splice(iLF,1)
+
+    //remove recent files from  list
+    for (let iLF = 0; iLF < lastOpenFiles.length; iLF++) {
+        const recentFile = lastOpenFiles[iLF];
+        for (let iFile = 0; iFile < responseArray.length; iFile++) {
+            if (recentFile===responseArray[iFile].info){
+                responseArray.splice(iFile,1)
+                break;
+            }
+        }
+    }
+
+    // add recent  files  to the top of the list
+    for (let i = lastOpenFiles.length-1; i >=0; i--) 
+        responseArray.unshift({ display: "Recent file: " + lastOpenFiles[i], info: lastOpenFiles[i] }); //add file to array        
 };
 
 export default class fileSystem {
-    app: App;
+    plugin: ThePlugin;
     exclusionFolders: Array<string> = [];
+    dnpLabel: string;
 
-    constructor(app: App) { this.app = app }
+    constructor(plugin: ThePlugin, dnpLabel: string) {
+        this.plugin = plugin;
+        this.dnpLabel = dnpLabel;
+    }
 
     setExclusionFolders(exclusion: Array<string>): void {
         this.exclusionFolders = exclusion;
@@ -55,21 +75,23 @@ export default class fileSystem {
 
     async getAllFolders(rootPath: string): Promise<Array<suggesterItem>> {
         const results: Array<suggesterItem> = [];
-        await getFiles(this.app, rootPath, fileSystemReturnType.foldersOnly, results, this.exclusionFolders);
+        await getFiles(this.plugin.app, rootPath, fileSystemReturnType.foldersOnly, results, this.exclusionFolders);
         return results;
     }
 
     async getAllFiles(rootPath: string): Promise<Array<suggesterItem>> {
         const results: Array<suggesterItem> = [];
-        await getFiles(this.app, rootPath, fileSystemReturnType.filesOnly, results, this.exclusionFolders);
-        await addLastOpenFiles(this.app, results);
+        await getFiles(this.plugin.app, rootPath, fileSystemReturnType.filesOnly, results, this.exclusionFolders);
+        await addLastOpenFiles(this.plugin.app, results);
+        if (this.plugin.settings.enableDNP)
+            results.unshift({ display: this.dnpLabel, info: this.dnpLabel });
         return results;
     }
 
     async getAllFoldersAndFiles(rootPath: string): Promise<Array<suggesterItem>> {
         const results: Array<suggesterItem> = [];
-        await getFiles(this.app, rootPath, fileSystemReturnType.filesAndFolders, results, this.exclusionFolders);
-        await addLastOpenFiles(this.app, results);
+        await getFiles(this.plugin.app, rootPath, fileSystemReturnType.filesAndFolders, results, this.exclusionFolders);
+        await addLastOpenFiles(this.plugin.app, results);
         return results;
     }
 }

@@ -7,23 +7,23 @@ export default class pluginCommands {
     plugin: ThePlugin;
     commands = [
         {
-            caption: "Select current line", shortcut: "SL", menu: true, icon: "highlight-glyph",
+            caption: "Select current line", shortcut: "SL", menu: false,  icon: "highlight-glyph",
             command: async (): Promise<void> => transporter.selectCurrentLine()
         },
         {
-            caption: "Select block - previous", shortcut: "BN", menu: true, icon: "highlight-glyph",
+            caption: "Select block - previous", shortcut: "BN", menu: false, icon: "highlight-glyph",
             command: async (): Promise<void> => transporter.selectAdjacentBlock(this.plugin, false)
         },
         {
-            caption: "Select block - next", shortcut: "BP", menu: true, icon: "highlight-glyph",
+            caption: "Select block - next", shortcut: "BP", menu: false, icon: "highlight-glyph",
             command: async (): Promise<void> => transporter.selectAdjacentBlock(this.plugin, true)
         },
         {
-            caption: "Select current line and expand up into previous block", shortcut: "SP", menu: true, icon: "highlight-glyph",
+            caption: "Select current line and expand up into previous block", shortcut: "SP", menu: false, icon: "highlight-glyph",
             command: async (): Promise<void> => transporter.selectCurrentSection(this.plugin, true)
         },
         {
-            caption: "Select current line and expand down into next block", shortcut: "SN", menu: true, icon: "highlight-glyph",
+            caption: "Select current line and expand down into next block", shortcut: "SN", menu: false, icon: "highlight-glyph",
             command: async (): Promise<void> => transporter.selectCurrentSection(this.plugin, false)
         },
         {
@@ -64,7 +64,7 @@ export default class pluginCommands {
         },
     ];
 
-    async reloadPlugin() {
+    async reloadPlugin(): Promise<void> {
         new Notice('Reloading plugin: ' + this.plugin.appName);
         // @ts-ignore
         await app.plugins.disablePlugin('obsidian42-text-transporter');
@@ -72,20 +72,22 @@ export default class pluginCommands {
         await app.plugins.enablePlugin('obsidian42-text-transporter')
     }
 
-    async masterControlProgram() { // Yes this is a reference to Tron https://www.imdb.com/title/tt0084827/
+
+    // list of all commands available in Command  Pallet format
+    async masterControlProgram(): Promise<void> { // Yes this is a reference to Tron https://www.imdb.com/title/tt0084827/
         const currentView = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
-        if(!currentView || currentView.getMode()!=="source") {
+        if (!currentView || currentView.getMode() !== "source") {
             new Notice("No document in edit mode");
             return;
         }
-        
+
         const gfs = new genericFuzzySuggester(this.plugin);
-        let cpCommands: Array<suggesterItem> = [];
-        for (let cmd of this.commands)
+        const cpCommands: Array<suggesterItem> = [];
+        for (const cmd of this.commands)
             cpCommands.push({ display: cmd.caption, info: cmd.command });
-        if(this.plugin.settings.enableDebugMode)
-            cpCommands.push({display: "Reload plugin (Debugging)", info:  async (): Promise<void> => this.reloadPlugin() })
-        
+        if (this.plugin.settings.enableDebugMode)
+            cpCommands.push({ display: "Reload plugin (Debugging)", info: async (): Promise<void> => this.reloadPlugin() })
+
         gfs.setSuggesterData(cpCommands);
         gfs.display(async (i: any, evt: MouseEvent | KeyboardEvent) => i.item.info(evt)); //call the callback
     }
@@ -95,6 +97,7 @@ export default class pluginCommands {
         // Combined function
         this.plugin.addCommand({
             id: this.plugin.appID + '-combinedCommands', name: 'All Commands List',
+            icon: "TextTransporter",
             editorCallback: async () => {
                 await this.masterControlProgram();
             }
@@ -102,20 +105,19 @@ export default class pluginCommands {
 
         this.plugin.registerEvent(
             this.plugin.app.workspace.on("editor-menu", (menu) => {
-                for (let [key, value] of Object.entries(this.commands)) {
-                    if (value.menu === true) {
-                        menu.addItem(item => {
-                            item
-                                .setTitle(value.caption)
-                                .setIcon(value.icon)
-                                .onClick(async () => { await value.command() });
-                        });
-                    }
-                }
+                if(this.plugin.settings.enableContextMenuCommands) 
+                    for (const value of this.commands) 
+                        if (value.menu === true) 
+                            menu.addItem(item => {
+                                item
+                                    .setTitle(value.caption)
+                                    .setIcon(value.icon)
+                                    .onClick(async () => { await value.command() });
+                            });
             })
         );
 
-        for (let [key, value] of Object.entries(this.commands)) {
+        for (const [key, value] of Object.entries(this.commands)) {
             this.plugin.addCommand({
                 id: this.plugin.appID + "-" + key.toString(),
                 icon: value.icon,
