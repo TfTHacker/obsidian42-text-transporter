@@ -31,3 +31,15 @@ Check out this quick video to see what it is all about:
 -  Select block - next
 -  Select current line and expand up into previous block
 -  Select current line and expand down into next block
+
+# Manual installation 
+
+- Go to the releases page of this repository and find the most current release
+- Download the 3 files main.js, manifest.json, and styles.css at the bottom of the release page.
+- Open your Obsidian Vault folder location on your computer (however you normally do with your Operating System)
+- You should see a folder in your vault called .obsidian ... open that ... and then open the plugins folder within it. (Obsidian Vault\.obsidian\plugins)
+- Create a new folder within this plugins folder and name it whatever you want. Something like "obsidian-text-transporter" for example.
+- Copy the files from step 2 that you downloaded, into this new "obsidian-annotator" plugin folder
+- Open Obsidian and go to Settings > Community Plugins ... Turn OFF Safe Mode if it is currently on
+- You then will see a section called "Installed plugins". Click the refresh button to the right.
+- This plugin should now show up. Now simply Enable it with the toggle to the right of it.
