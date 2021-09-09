@@ -1,7 +1,5 @@
-import { CachedMetadata, Pos, SectionCache, CacheItem, BlockCache, HeadingCache, TFile } from "obsidian";
-import { isTypeNode } from "typescript";
+import { CachedMetadata, Pos, SectionCache, CacheItem, HeadingCache, TFile } from "obsidian";
 import ThePlugin from "../main";
-import { copyOrPushLineOrSelectionToNewLocation, selectCurrentLine } from "./transporterFunctions";
 
 interface cacheDetails {
     index: number;
@@ -21,16 +19,11 @@ class fileCacheAnalyzer {
     fileFullPath: string;
 
     constructor(plugin: ThePlugin, fileFullPath: string) {
-        // console.clear()
-        // console.log('filePath:' + fileFullPath);
         this.plugin = plugin;
         this.cache = <CachedMetadata>plugin.app.metadataCache.getCache(fileFullPath)
         this.fileFullPath = fileFullPath;
 
-        console.log('cache')
-        console.log(this.cache)
-
-        for (let section of this.cache.sections) {
+        for (const section of this.cache.sections) {
             switch (section.type) {
                 case "heading":
                     this.breakdownCacheItems(this.cache.headings, section, false);
@@ -50,12 +43,8 @@ class fileCacheAnalyzer {
                     break;
             }
         }
-        for (let i in this.details)
+        for (const i in this.details)
             this.details[i].index = Number(i);
-
-        console.log('details')
-        console.log(this.details)
-
     }
 
     getBlockAtLine(line: number, defaultForward: boolean): cacheDetails {
@@ -75,7 +64,7 @@ class fileCacheAnalyzer {
         return lastBlockToMatch;
     }
 
-    getBlockAfterLine(line: number) {
+    getBlockAfterLine(line: number): cacheDetails {
         const blockIndexAtLine = this.getBlockAtLine(line, true).index;
         if (this.details.length === 1)
             return this.details[0];
@@ -85,7 +74,7 @@ class fileCacheAnalyzer {
             return null;
     }
 
-    getBlockBeforeLine(line: number) {
+    getBlockBeforeLine(line: number): cacheDetails {
         const blockNumberAtLine = this.getBlockAtLine(line, false).index;
         if (this.details.length === 0)
             return null;
@@ -97,28 +86,28 @@ class fileCacheAnalyzer {
 
 
     //debugging function: creats a doc with information
-    async createDocumentWithInfo() {
+    async createDocumentWithInfo(): Promise<void> {
         let output = `# ${this.fileFullPath}\n\n`;
-        for (let item of this.details) {
+        for (const item of this.details) {
             output += item.type + " " + item.lineStart + "->" + item.lineEnd + " " + (item.blockId ? item.blockId : "") + "\n";
         }
         const fileName = "/fileBreadkown.md";
         await this.plugin.app.vault.adapter.write(fileName, output);
-        let newFile = await this.plugin.app.vault.getAbstractFileByPath(fileName);
+        const newFile = await this.plugin.app.vault.getAbstractFileByPath(fileName);
         const leaf = this.plugin.app.workspace.splitActiveLeaf('vertical')
         leaf.openFile(<TFile>newFile);
     }
 
     breakdownCacheItems(cacheItems: Array<CacheItem>, section: SectionCache, checkForBlockRefs: boolean): void {
         let itemsFoundTrackToBreakOut = false;
-        for (let itemInCache of cacheItems) {
+        for (const itemInCache of cacheItems) {
             const positionInSameRange = this.positionOfItemWithinSameRange(itemInCache.position, section.position);
             if (positionInSameRange === false && itemsFoundTrackToBreakOut === true) {
                 break; // this looks funny but is for perf, but prevents the loop from continuing once matches have been found, but the item is no longer matched.
             } else if (positionInSameRange) {
                 itemsFoundTrackToBreakOut = true; // will prevent the whole cacheItems from being looped once a match is found
                 // section has a match in cache, so insert into details
-                let itemToAppend: cacheDetails = {
+                const itemToAppend: cacheDetails = {
                     index: 0,
                     type: section.type,
                     lineStart: itemInCache.position.start.line,
@@ -142,7 +131,7 @@ class fileCacheAnalyzer {
                 }
                 this.details.push(itemToAppend);
             }
-        }; // cacheItems.forEach
+        } // cacheItems.forEach
     }
 
     // compares to Pos objects to see if they are in the same range

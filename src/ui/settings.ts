@@ -3,14 +3,18 @@ import ThePlugin from '../main';
 
 export interface Settings {
 	enableRibbon: boolean,
+    enableDNP: boolean,
     enableDebugMode: boolean,
-    blockRefAliasIndicator: string
+    blockRefAliasIndicator: string,
+	enableContextMenuCommands: boolean
 }
 
 export const DEFAULT_SETTINGS: Settings = {
 	enableRibbon: true,
+    enableDNP: true,
     enableDebugMode: false,
-    blockRefAliasIndicator: "*"
+    blockRefAliasIndicator: "*",
+	enableContextMenuCommands: true
 }
 
 export class SettingsTab extends PluginSettingTab {
@@ -41,6 +45,29 @@ export class SettingsTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				});
 			});
+			
+		new Setting(containerEl)
+		.setName('Enable Context Menu')
+		.setDesc('Toggle on and off the text transporter commands from appearing in the context menu.')
+		.addToggle((cb: ToggleComponent) => {
+			cb.setValue(this.plugin.settings.enableContextMenuCommands);
+			cb.onChange(async (value: boolean) => {
+				this.plugin.settings.enableContextMenuCommands = value;
+				await this.plugin.saveSettings();
+			});
+		});
+
+        new Setting(containerEl)
+			.setName('Daily Notes Page Support')
+			.setDesc('Toggle on and off support for quickly interacting with your DNP with various commands.')
+			.addToggle((cb: ToggleComponent) => {
+				cb.setValue(this.plugin.settings.enableDNP);
+				cb.onChange(async (value: boolean) => {
+					this.plugin.settings.enableDNP = value;
+					await this.plugin.saveSettings();
+				});
+			});
+
 
         new Setting(containerEl)
         .setName("Alias Indicator")
