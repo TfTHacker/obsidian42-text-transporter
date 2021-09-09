@@ -220,7 +220,7 @@ async function addBlockRefsToSelection(plugin: ThePlugin, copyToClipbard: boolea
 // if returnEndPoint = true, another suggester is shown so user can select endpoint of selection from file
 async function displayFileLineSuggester(plugin: ThePlugin, returnEndPoint: boolean, callback): Promise<void> {
     const activeFile = getContextObjects().currentFile.path;
-    let fileList: Array<suggesterItem> = await plugin.fs.getAllFiles("/");
+    const fileList: Array<suggesterItem> = await plugin.fs.getAllFiles("/");
     for (let i = 0; i < fileList.length; i++)
         if (fileList[i].info.localeCompare(activeFile, undefined, { sensitivity: 'base' }) === 0) {
             fileList.splice(i, 1);
@@ -229,7 +229,7 @@ async function displayFileLineSuggester(plugin: ThePlugin, returnEndPoint: boole
 
     // add bookmarks to suggester
     if (plugin.settings.bookmarks.trim().length > 0) {
-        let bookmarks = plugin.settings.bookmarks.trim().split('\n')
+        const bookmarks = plugin.settings.bookmarks.trim().split('\n')
         for (let i = bookmarks.length - 1; i >= 0; i--) {
             let filePath = bookmarks[i];
             if (filePath.search(";") > 0) filePath = filePath.substr(0, filePath.search(";"));
@@ -245,7 +245,6 @@ async function displayFileLineSuggester(plugin: ThePlugin, returnEndPoint: boole
     await chooser.display(async (i: suggesterItem) => {
         // @ts-ignore
         let targetFileName = i.item.info;
-        let bookmarkSelected = false;   //track if this is a bookmarked file, which requires special handling
 
         if (plugin.settings.enableDNP && targetFileName === plugin.dnpHeaderForFileSelector) {
             let dnp = getDailyNote(moment(), getAllDailyNotes());
@@ -256,28 +255,28 @@ async function displayFileLineSuggester(plugin: ThePlugin, returnEndPoint: boole
             // a bookmark was selected with a command. process callback
             const filePath = targetFileName.substring(0, targetFileName.search(";"));
             const command = targetFileName.substring(filePath.length + 1).toLocaleUpperCase().trim();
-            let lineNumberForInsert = -1; //default for top
+            let lineNumber = -1; //default for top
             const fileContentsArray: Array<suggesterItem> = [];
             for (const [key, value] of Object.entries((await plugin.app.vault.adapter.read(filePath)).split('\n'))) {
                 fileContentsArray.push({ display: value, info: key });
             }
             if (command === "BOTTOM" || command !== "TOP") {
                 if (command === "BOTTOM")
-                    lineNumberForInsert = fileContentsArray.length;
+                    lineNumber = fileContentsArray.length-1;
                 else {
                     for (let i = 0; i < fileContentsArray.length; i++) {
                         if (fileContentsArray[i].display.toLocaleUpperCase().trim() === command) {
-                            lineNumberForInsert = i;
+                            lineNumber = i;
                             break;
                         }
                     }
-                    if (lineNumberForInsert === -1) {
-                        new Notice("The location was not found in the file: \n\n" +  targetFileName.substring(filePath.length + 1), 10000);
+                    if (lineNumber === -1) {
+                        new Notice("The location was not found in the file: \n\n" + targetFileName.substring(filePath.length + 1), 10000);
                         return;
                     }
                 }
             }
-            callback(filePath, fileContentsArray, lineNumberForInsert, lineNumberForInsert);
+            callback(filePath, fileContentsArray, lineNumber, lineNumber);
             return;
         }
 
@@ -351,6 +350,8 @@ async function copyOrPushLineOrSelectionToNewLocation(plugin: ThePlugin, copySel
 // Pull (move) a line or lines from another file
 async function copyOrPulLineOrSelectionFromAnotherLocation(plugin: ThePlugin, copySelection: boolean): Promise<void> {
     await displayFileLineSuggester(plugin, true, (targetFileName, fileContentsArray, startLine, endLine) => {
+        startLine = startLine === -1 ? startLine = 0 : startLine;
+        endLine = endLine === -1 ? endLine = 0 : endLine;
         let stringToInsertIntoSelection = "";
         for (const element of fileContentsArray.slice(startLine, endLine + 1))
             stringToInsertIntoSelection += element.display + "\n";
@@ -392,6 +393,11 @@ async function pushBlockReferenceToAnotherFile(plugin: ThePlugin): Promise<void>
 // pull a block reference from another file and insert into the current location
 async function pullBlockReferenceFromAnotherFile(plugin: ThePlugin): Promise<void> {
     await displayFileLineSuggester(plugin, true, async (targetFileName, fileContentsArray, startLine, endLine) => {
+        console.log('a',startLine,endLine)
+        startLine = startLine === -1 ? startLine = 0 : startLine;
+        endLine = endLine === -1 ? endLine = 0 : endLine;
+        console.log('b',startLine,endLine)
+
         const f = new fileCacheAnalyzer(plugin, targetFileName);
         const fileContents = (await plugin.app.vault.adapter.read(targetFileName)).split("\n");
         let fileChanged = false;

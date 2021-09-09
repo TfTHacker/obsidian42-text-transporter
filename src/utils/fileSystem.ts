@@ -35,7 +35,7 @@ const getFiles = async (app: App, rootPath: string, returnType: fileSystemReturn
 };
 
 const addLastOpenFiles = async (app: App, responseArray: Array<suggesterItem>) => {
-    let lastOpenFiles = app.workspace.getLastOpenFiles();
+    const lastOpenFiles = app.workspace.getLastOpenFiles();
     if (lastOpenFiles.length === 0) return
 
     //confirm file exists

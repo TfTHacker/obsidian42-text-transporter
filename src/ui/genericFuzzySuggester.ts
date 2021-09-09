@@ -54,7 +54,7 @@ class genericFuzzySuggester extends FuzzySuggestModal<suggesterItem>{
 
     getItemText(item: suggesterItem): string { return item.display }
 
-    // onChooseItem(item: suggesterItem, evt: MouseEvent | KeyboardEvent) { }
+    onChooseItem(): void { return } // required by TS, but not using
 
     renderSuggestion(item: FuzzyMatch<suggesterItem>, el: HTMLElement): void { el.createEl('div', { text: item.item.display }) }
 
