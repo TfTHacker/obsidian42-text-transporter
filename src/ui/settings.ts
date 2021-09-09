@@ -6,7 +6,8 @@ export interface Settings {
     enableDNP: boolean,
     enableDebugMode: boolean,
     blockRefAliasIndicator: string,
-	enableContextMenuCommands: boolean
+	enableContextMenuCommands: boolean,
+	bookmarks: string
 }
 
 export const DEFAULT_SETTINGS: Settings = {
@@ -14,7 +15,8 @@ export const DEFAULT_SETTINGS: Settings = {
     enableDNP: true,
     enableDebugMode: false,
     blockRefAliasIndicator: "*",
-	enableContextMenuCommands: true
+	enableContextMenuCommands: true,
+	bookmarks: ""
 }
 
 export class SettingsTab extends PluginSettingTab {
@@ -83,6 +85,26 @@ export class SettingsTab extends PluginSettingTab {
                 await this.plugin.saveSettings();
             })
         );
+
+		new Setting(containerEl)
+		.setName('Bookmarks')
+		.setDesc(`Predefined destinations that appear at the top of the file selector. 
+		Each line represents one bookmark. The line starts with the path to the file (ex: directory1/subdirectory/filename.md) 
+		If just the file path is provided, the file contents will be shown for insertion.
+		If after the file name there is a semicolon followed by either: TOP BOTTOM or text to find in the document as an insertion point. Example:\n
+		directory1/subdirectory/filename1.md;TOP  directory1/subdirectory/filename2.md;BOTTOM  directory1/subdirectory/filename3.md;# Inbox
+		`)
+		.addTextArea((text) => {
+		  text
+			.setPlaceholder(" directory1/subdirectory/filename1.md;\n directory1/subdirectory/filename2.md;TOP\n directory1/subdirectory/filename3.md;BOTTOM\n directory1/subdirectory/filename4.md;# Inbox")
+			.setValue(this.plugin.settings.bookmarks || '')
+			.onChange((value) => {
+			  this.plugin.settings.bookmarks = value;
+			  this.plugin.saveData(this.plugin.settings);
+			})
+		  text.inputEl.rows = 10;
+		  text.inputEl.cols = 60;
+		});
 
         new Setting(containerEl)
         .setName('Debugging support')

@@ -4,7 +4,7 @@ import { genericFuzzySuggester } from '../ui/genericFuzzySuggester';
 import ThePlugin from '../main';
 import { suggesterItem } from '../ui/genericFuzzySuggester';
 import { fileCacheAnalyzer, cacheDetails } from './fileCacheAnalyzer';
-import { createDailyNote, getAllDailyNotes,  getDailyNote } from 'obsidian-daily-notes-interface';
+import { createDailyNote, getAllDailyNotes, getDailyNote } from 'obsidian-daily-notes-interface';
 
 function getContextObjects(): any {
     const currentView: View = this.app.workspace.activeLeaf.view;
@@ -62,7 +62,7 @@ function selectCurrentSection(plugin: ThePlugin, directionUP = true): void {
         (ctx.editor.getRange({ line: ctx.currentLine, ch: ctx.editor.getLine(ctx.currentLine).length }, { line: ctx.currentLine, ch: 0 }).length !== 0)) {
         // line not selected, so select the current line
         ctx.editor.setSelection({ line: ctx.currentLine, ch: 0 }, { line: ctx.currentLine, ch: ctx.editor.getLine(ctx.currentLine).length });
-    } else {        
+    } else {
         // test if this is a block, if it is, select it
         const lastLineOfBlock = f.details.find(section => {
             if (ctx.currentLine >= Number(section.position.start.line) && ctx.currentLine <= Number(section.position.end.line)) {
@@ -107,14 +107,14 @@ function selectCurrentSection(plugin: ThePlugin, directionUP = true): void {
                 lastSelectedLine = currentRange[0].anchor.line;
             }
             for (let i = 0; i < f.details.length; i++) {
-                if (ctx.currentLine >=  f.details[i].position.end.line) {
-                    currentBlock =  f.details[i];
+                if (ctx.currentLine >= f.details[i].position.end.line) {
+                    currentBlock = f.details[i];
                     try {
-                        nextBlock =  f.details[i + 1];
+                        nextBlock = f.details[i + 1];
                     } catch (e) { console.log(e) }
                 }
-                if (firstSelectedLine >  f.details[i].position.end.line)
-                    proceedingBlock =  f.details[i];
+                if (firstSelectedLine > f.details[i].position.end.line)
+                    proceedingBlock = f.details[i];
             }
             if (proceedingBlock && directionUP) {
                 ctx.editor.setSelection({ line: proceedingBlock.position.start.line, ch: 0 },
@@ -135,7 +135,7 @@ function selectCurrentSection(plugin: ThePlugin, directionUP = true): void {
 
 const nanoid = customAlphabet('abcdefghijklmnopqrstuvwz', 6);
 
-function cleanupHeaderNameForBlockReference(header:string): string {
+function cleanupHeaderNameForBlockReference(header: string): string {
     return header.replaceAll("[", "").replaceAll("]", "").replaceAll("#", "").replaceAll("|", "");
 }
 
@@ -187,13 +187,13 @@ async function addBlockRefsToSelection(plugin: ThePlugin, copyToClipbard: boolea
             for (let sectionCounter = 0; sectionCounter < f.details.length; sectionCounter++) {
                 const section = f.details[sectionCounter];
                 if (selectedLineInEditor >= section.position.start.line && selectedLineInEditor <= section.position.end.line) {
-                    if ( (section.type === "paragraph" || section.type === "list") && !section.blockId) {
+                    if ((section.type === "paragraph" || section.type === "list") && !section.blockId) {
                         const newId = nanoid();
                         ctx.editor.replaceRange(` ^${newId}`, { line: Number(section.position.end.line), ch: section.position.end.col }, { line: Number(section.position.end.line), ch: section.position.end.col });
                         blockRefs.push("#^" + newId);
                         selectedLineInEditor = section.position.end.line;
                         break;
-                    } else if (section.type === "paragraph" || section.type === "list" ) {
+                    } else if (section.type === "paragraph" || section.type === "list") {
                         blockRefs.push("#^" + section.blockId);
                         selectedLineInEditor = section.position.end.line;
                         break;
@@ -207,9 +207,9 @@ async function addBlockRefsToSelection(plugin: ThePlugin, copyToClipbard: boolea
         } //selectedLineInEditor
     } //curSels
 
-    if(copyToClipbard && blockRefs.length>0) {
+    if (copyToClipbard && blockRefs.length > 0) {
         let block = "";
-        blockRefs.forEach( b => block+=`![[${ctx.currentFile.name}${b}]]\n`);
+        blockRefs.forEach(b => block += `![[${ctx.currentFile.name}${b}]]\n`);
         navigator.clipboard.writeText(block).then(text => text);
     }
     return blockRefs;
@@ -221,25 +221,64 @@ async function addBlockRefsToSelection(plugin: ThePlugin, copyToClipbard: boolea
 async function displayFileLineSuggester(plugin: ThePlugin, returnEndPoint: boolean, callback): Promise<void> {
     const activeFile = getContextObjects().currentFile.path;
     let fileList: Array<suggesterItem> = await plugin.fs.getAllFiles("/");
-    for (let i = 0; i < fileList.length; i++) 
-        if(fileList[i].info.localeCompare(activeFile, undefined, { sensitivity: 'base' })===0) {
-            fileList.splice(i,1);
+    for (let i = 0; i < fileList.length; i++)
+        if (fileList[i].info.localeCompare(activeFile, undefined, { sensitivity: 'base' }) === 0) {
+            fileList.splice(i, 1);
             break;
         }
-    
+
+    // add bookmarks to suggester
+    if (plugin.settings.bookmarks.trim().length > 0) {
+        let bookmarks = plugin.settings.bookmarks.trim().split('\n')
+        for (let i = bookmarks.length - 1; i >= 0; i--) {
+            let filePath = bookmarks[i];
+            if (filePath.search(";") > 0) filePath = filePath.substr(0, filePath.search(";"));
+            if (await plugin.app.vault.adapter.exists(filePath))
+                fileList.unshift({ display: "Bookmark: " + bookmarks[i], info: bookmarks[i] })
+        }
+    }
+
     const chooser = new genericFuzzySuggester(plugin);
     chooser.setSuggesterData(fileList);
     chooser.setPlaceholder("Select a file")
 
     await chooser.display(async (i: suggesterItem) => {
         // @ts-ignore
-        let targetFileName =  i.item.info;
+        let targetFileName = i.item.info;
+        let bookmarkSelected = false;   //track if this is a bookmarked file, which requires special handling
 
-        if(plugin.settings.enableDNP && targetFileName ===  plugin.dnpHeaderForFileSelector ) {
+        if (plugin.settings.enableDNP && targetFileName === plugin.dnpHeaderForFileSelector) {
             let dnp = getDailyNote(moment(), getAllDailyNotes());
-            if(dnp===null)
+            if (dnp === null)
                 dnp = await createDailyNote(moment());
             targetFileName = dnp.path;
+        } else if (targetFileName.search(";") > 0) {
+            // a bookmark was selected with a command. process callback
+            const filePath = targetFileName.substring(0, targetFileName.search(";"));
+            const command = targetFileName.substring(filePath.length + 1).toLocaleUpperCase().trim();
+            let lineNumberForInsert = -1; //default for top
+            const fileContentsArray: Array<suggesterItem> = [];
+            for (const [key, value] of Object.entries((await plugin.app.vault.adapter.read(filePath)).split('\n'))) {
+                fileContentsArray.push({ display: value, info: key });
+            }
+            if (command === "BOTTOM" || command !== "TOP") {
+                if (command === "BOTTOM")
+                    lineNumberForInsert = fileContentsArray.length;
+                else {
+                    for (let i = 0; i < fileContentsArray.length; i++) {
+                        if (fileContentsArray[i].display.toLocaleUpperCase().trim() === command) {
+                            lineNumberForInsert = i;
+                            break;
+                        }
+                    }
+                    if (lineNumberForInsert === -1) {
+                        new Notice("The location was not found in the file: \n\n" +  targetFileName.substring(filePath.length + 1), 10000);
+                        return;
+                    }
+                }
+            }
+            callback(filePath, fileContentsArray, lineNumberForInsert, lineNumberForInsert);
+            return;
         }
 
         const curContent = await plugin.app.vault.adapter.read(targetFileName);
@@ -248,26 +287,37 @@ async function displayFileLineSuggester(plugin: ThePlugin, returnEndPoint: boole
         for (const [key, value] of Object.entries(curContent.split('\n')))
             fileContentsArray.push({ display: value, info: key });
 
+        if (fileContentsArray.length > 1) {
+            fileContentsArray.unshift({ display: "-- Bottom of File --", info: fileContentsArray.length - 1, });
+            fileContentsArray.unshift({ display: "-- Top of File --", info: -1 });
+        }
+
         const firstLinechooser = new genericFuzzySuggester(plugin);
         firstLinechooser.setSuggesterData(fileContentsArray);
         firstLinechooser.setPlaceholder("Select the line from file")
 
         await firstLinechooser.display(async (iFileLocation: suggesterItem, evt: MouseEvent | KeyboardEvent) => {
+            let startFilePosition = Number(iFileLocation.item.info);
+            if (fileContentsArray.length > 1)
+                fileContentsArray.splice(0, 2); //remove top and bottom
             if (returnEndPoint) { //if expecting endpoint, show suggester again
-                if (Number(iFileLocation.item.info) === fileContentsArray.length - 1) {
+                if (Number(startFilePosition) === fileContentsArray.length - 1) {
                     //only one element in file, or selection is end of file
-                    callback(targetFileName, fileContentsArray, Number(iFileLocation.item.info), Number(iFileLocation.item.info), evt);
+                    callback(targetFileName, fileContentsArray, startFilePosition, startFilePosition, evt);
                 } else {
-                    const endPointArray = fileContentsArray.slice(Number(iFileLocation.item.info));
+                    startFilePosition = startFilePosition === -1 ? 0 : startFilePosition;
+                    const endPointArray = fileContentsArray.slice(startFilePosition + 1);
+                    endPointArray.unshift({ display: "-- Bottom of File --", info: fileContentsArray.length - 1 });
                     const lastLineChooser = new genericFuzzySuggester(plugin);
                     lastLineChooser.setSuggesterData(endPointArray);
                     lastLineChooser.setPlaceholder("Select the last line for the selection")
                     await lastLineChooser.display(async (iFileLocationEndPoint: suggesterItem, evt: MouseEvent | KeyboardEvent) => {
-                        callback(targetFileName, fileContentsArray, Number(iFileLocation.item.info), Number(iFileLocationEndPoint.item.info), evt);
+                        callback(targetFileName, fileContentsArray, startFilePosition, Number(iFileLocationEndPoint.item.info), evt);
                     });
                 }
-            } else
-                callback(targetFileName, fileContentsArray, Number(iFileLocation.item.info), evt);
+            } else {
+                callback(targetFileName, fileContentsArray, startFilePosition, evt);
+            }
         });
     });
 } //displayFileLineSuggester
@@ -280,6 +330,7 @@ async function copyOrPushLineOrSelectionToNewLocation(plugin: ThePlugin, copySel
     let selectedText = ctx.editor.getSelection();
     if (selectedText === "") selectedText = ctx.editor.getLine(ctx.currentLine); //get text from current line
     await displayFileLineSuggester(plugin, false, (targetFileName, fileContentsArray, lineNumber) => {
+
         // @ts-ignore
         fileContentsArray.splice(Number(lineNumber) + 1, 0, { display: selectedText, info: "" });
         let newContents = "";
@@ -321,7 +372,7 @@ async function copyOrPulLineOrSelectionFromAnotherLocation(plugin: ThePlugin, co
 //copy a block reference of the current line to another file
 async function pushBlockReferenceToAnotherFile(plugin: ThePlugin): Promise<void> {
     await displayFileLineSuggester(plugin, false, async (targetFileName, fileContentsArray, startLine) => {
-        const results = await addBlockRefsToSelection(plugin,false);
+        const results = await addBlockRefsToSelection(plugin, false);
         let blockRefs = "";
         const fileName = getContextObjects().currentFile.path;
         if (results.length > 0) {
@@ -361,7 +412,7 @@ async function pullBlockReferenceFromAnotherFile(plugin: ThePlugin): Promise<voi
                         lineNumber = section.position.end.line;
                         break;
                     } else if (section.type === "heading") {
-                        const heading =  cleanupHeaderNameForBlockReference(section.headingText);
+                        const heading = cleanupHeaderNameForBlockReference(section.headingText);
                         blockRefs.push("#" + heading);
                         lineNumber = section.position.end.line;
                         break;
