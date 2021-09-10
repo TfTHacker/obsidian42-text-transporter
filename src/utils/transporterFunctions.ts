@@ -1,5 +1,5 @@
 import { customAlphabet } from 'nanoid';
-import { CachedMetadata, Editor, TFile, View, Notice, EditorSelection, SectionCache, EditorPosition, moment } from "obsidian";
+import { CachedMetadata, Editor, TFile, View, Notice, EditorSelection, SectionCache, EditorPosition, moment, LinkCache, getLinkpath } from "obsidian";
 import { genericFuzzySuggester } from '../ui/genericFuzzySuggester';
 import ThePlugin from '../main';
 import { suggesterItem } from '../ui/genericFuzzySuggester';
@@ -262,7 +262,7 @@ async function displayFileLineSuggester(plugin: ThePlugin, returnEndPoint: boole
             }
             if (command === "BOTTOM" || command !== "TOP") {
                 if (command === "BOTTOM")
-                    lineNumber = fileContentsArray.length-1;
+                    lineNumber = fileContentsArray.length - 1;
                 else {
                     for (let i = 0; i < fileContentsArray.length; i++) {
                         if (fileContentsArray[i].display.toLocaleUpperCase().trim() === command) {
@@ -286,19 +286,12 @@ async function displayFileLineSuggester(plugin: ThePlugin, returnEndPoint: boole
         for (const [key, value] of Object.entries(curContent.split('\n')))
             fileContentsArray.push({ display: value, info: key });
 
-        if (fileContentsArray.length > 1) {
-            fileContentsArray.unshift({ display: "-- Bottom of File --", info: fileContentsArray.length - 1, });
-            fileContentsArray.unshift({ display: "-- Top of File --", info: -1 });
-        }
-
         const firstLinechooser = new genericFuzzySuggester(plugin);
         firstLinechooser.setSuggesterData(fileContentsArray);
         firstLinechooser.setPlaceholder("Select the line from file")
 
         await firstLinechooser.display(async (iFileLocation: suggesterItem, evt: MouseEvent | KeyboardEvent) => {
             let startFilePosition = Number(iFileLocation.item.info);
-            if (fileContentsArray.length > 1)
-                fileContentsArray.splice(0, 2); //remove top and bottom
             if (returnEndPoint) { //if expecting endpoint, show suggester again
                 if (Number(startFilePosition) === fileContentsArray.length - 1) {
                     //only one element in file, or selection is end of file
@@ -393,10 +386,10 @@ async function pushBlockReferenceToAnotherFile(plugin: ThePlugin): Promise<void>
 // pull a block reference from another file and insert into the current location
 async function pullBlockReferenceFromAnotherFile(plugin: ThePlugin): Promise<void> {
     await displayFileLineSuggester(plugin, true, async (targetFileName, fileContentsArray, startLine, endLine) => {
-        console.log('a',startLine,endLine)
+        console.log('a', startLine, endLine)
         startLine = startLine === -1 ? startLine = 0 : startLine;
         endLine = endLine === -1 ? endLine = 0 : endLine;
-        console.log('b',startLine,endLine)
+        console.log('b', startLine, endLine)
 
         const f = new fileCacheAnalyzer(plugin, targetFileName);
         const fileContents = (await plugin.app.vault.adapter.read(targetFileName)).split("\n");
@@ -446,10 +439,44 @@ async function pullBlockReferenceFromAnotherFile(plugin: ThePlugin): Promise<voi
     });
 } //pullBlockReferenceFromAnotherFile
 
+function testIfCursorIsOnALink(plugin: ThePlugin): LinkCache {
+    const ctx = getContextObjects();
+    if (ctx.cache.links || ctx.cache.embeds || ctx.cache.headings) {
+        const ch = ctx.editor.getCursor().ch;
+        let linkInfo: LinkCache = null;
+        if (ctx.cache.links)
+            linkInfo = ctx.cache.links.find((l: LinkCache) => l.position.start.line === ctx.currentLine && (ch >= l.position.start.col && ch <= l.position.end.col));
+        if (!linkInfo && ctx.cache.embeds)
+            linkInfo = ctx.cache.embeds.find((l: LinkCache) => l.position.start.line === ctx.currentLine && (ch >= l.position.start.col && ch <= l.position.end.col));
+        return linkInfo ? linkInfo : null;
+    } else
+        return null;
+}
+
+async function copyBlockReferenceToCurrentCusorLocation(plugin: ThePlugin, linkInfo: LinkCache, leaveAliasToFile: boolean): Promise<void> {
+    const ctx = getContextObjects();
+    const file: TFile = plugin.app.metadataCache.getFirstLinkpathDest(getLinkpath(linkInfo.link), "/");
+    let fileContents = await plugin.app.vault.read(file);
+    const cache = new fileCacheAnalyzer(plugin, file.path);
+    if (cache.details && linkInfo.link.includes("^")) { //blockref
+        const blockRefId = linkInfo.link.substr(linkInfo.link.indexOf("^") + 1);
+        let pos = cache.details.find((b: cacheDetails) => b.blockId === blockRefId).position;
+        fileContents = fileContents.split("\n").slice(pos.start.line, pos.end.line + 1).join("\n");
+        fileContents = fileContents.replace("^" + blockRefId, "");
+    } else if (cache.details && linkInfo.link.contains("#")) {//header link
+        const headerId = linkInfo.link.substr(linkInfo.link.indexOf("#") + 1);
+        let pos = cache.getPositionOfHeaderAndItsChildren(headerId);
+        fileContents = fileContents.split("\n").slice(pos.start.line, pos.end.line + 1).join("\n");
+    }
+    if (leaveAliasToFile) fileContents += " [[" + linkInfo.link + "|*]]";
+    ctx.editor.replaceRange(fileContents, { line: linkInfo.position.start.line, ch: linkInfo.position.start.col }, { line: linkInfo.position.end.line, ch: linkInfo.position.end.col });
+}
+
 export {
     getContextObjects, selectAdjacentBlock,
     selectCurrentLine, copyBlockRefToClipboard, selectCurrentSection,
     indentifyCurrentSection, copyOrPushLineOrSelectionToNewLocation,
     copyOrPulLineOrSelectionFromAnotherLocation, addBlockRefsToSelection,
-    pushBlockReferenceToAnotherFile, pullBlockReferenceFromAnotherFile
+    pushBlockReferenceToAnotherFile, pullBlockReferenceFromAnotherFile,
+    testIfCursorIsOnALink, copyBlockReferenceToCurrentCusorLocation
 }

@@ -1,4 +1,4 @@
-import { CachedMetadata, Pos, SectionCache, CacheItem, HeadingCache, TFile } from "obsidian";
+import { CachedMetadata, Pos, SectionCache, CacheItem, HeadingCache, TFile, Loc } from "obsidian";
 import ThePlugin from "../main";
 
 interface cacheDetails {
@@ -82,6 +82,23 @@ class fileCacheAnalyzer {
             return this.details[blockNumberAtLine - 1]
         else
             return this.details[0];
+    }
+
+    getPositionOfHeaderAndItsChildren(headerName: string): Pos {
+        let startLine: Loc = null;
+        let endLine: Loc = null;
+        let headingLevel = null;
+        for(const h of this.details) {
+            if( startLine===null &&  h.type==="heading" && h.headingText === headerName) {
+                startLine = h.position.start;
+                headingLevel = h.headingLevel;
+                endLine = h.position.end;
+            } else if (startLine!=null && h.type==="heading" && h.headingLevel <= headingLevel) {
+                break;
+            } else 
+                endLine = h.position.end;
+        }
+        return startLine===null ? null : { start: startLine, end: endLine};
     }
 
 

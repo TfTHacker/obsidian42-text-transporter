@@ -3,7 +3,6 @@ import { genericFuzzySuggester, suggesterItem } from "./genericFuzzySuggester";
 import { cacheDetails, fileCacheAnalyzer } from "../utils/fileCacheAnalyzer";
 import * as transporter from "../utils/transporterFunctions"
 import { Notice, MarkdownView, LinkCache, getLinkpath, TFile, CachedMetadata, BlockCache, HeadingCache, Pos, EditorPosition, EditorRange } from "obsidian";
-import { link } from "fs";
 
 export default class pluginCommands {
     plugin: ThePlugin;
@@ -27,6 +26,26 @@ export default class pluginCommands {
         {
             caption: "Select current line and expand down into next block", shortcut: "SN", menu: false, icon: "highlight-glyph",
             command: async (): Promise<void> => transporter.selectCurrentSection(this.plugin, false)
+        },
+        {
+            caption: "Replace link with text", shortcut: "ABI", menu: true, icon: "blocks",
+            command: async () => {
+                const linkInfo = transporter.testIfCursorIsOnALink(this.plugin);
+                if (linkInfo) 
+                    await transporter.copyBlockReferenceToCurrentCusorLocation(this.plugin, linkInfo, false);
+                else
+                    new Notice("No link selected in editor.")
+            }
+        },
+        {
+            caption: "Replace link with text & alias", shortcut: "ABI", menu: true, icon: "blocks",
+            command: async () => {
+                const linkInfo = transporter.testIfCursorIsOnALink(this.plugin);
+                if (linkInfo) 
+                    await transporter.copyBlockReferenceToCurrentCusorLocation(this.plugin, linkInfo, true);
+                else
+                    new Notice("No link selected in editor.")
+            }
         },
         {
             caption: "Add block ref ID's to selection and Copy them to clipboard", shortcut: "ABI", menu: true, icon: "blocks",
@@ -107,58 +126,21 @@ export default class pluginCommands {
 
         this.plugin.registerEvent(
             this.plugin.app.workspace.on("editor-menu", (menu) => {
-                const ctx = transporter.getContextObjects();
-                if (ctx.cache.links || ctx.cache.embeds || ctx.cache.headings) {
-                    console.clear()
-                    const ch = ctx.editor.getCursor().ch;
-                    console.log(ch)
-                    let linkInfo = ctx.cache.links.find((l: LinkCache) => l.position.start.line === ctx.currentLine && (ch >= l.position.start.col && ch <= l.position.end.col));
-                    if (!linkInfo)
-                        linkInfo = ctx.cache.embeds.find((l: LinkCache) => l.position.start.line === ctx.currentLine && (ch >= l.position.start.col && ch <= l.position.end.col));
-                    if (linkInfo) { //cursor point contains a link, provide menu options
-                        console.log("linkInfo", linkInfo)
-                        const copyRefFunction = async (leaveAliasToFile:boolean)=>{
-                            const file: TFile = this.plugin.app.metadataCache.getFirstLinkpathDest(getLinkpath(linkInfo.link), "/");
-                            let fileContents = await this.plugin.app.vault.read(file);
-                            const cache = new fileCacheAnalyzer(this.plugin, file.path);
-                            console.log('cache',cache)
-                            if (cache.details && linkInfo.link.includes("^")) { //blockref
-                                const blockRefId = linkInfo.link.substr(linkInfo.link.indexOf("^") + 1);
-                                console.log('blockRefId',blockRefId)
-                                let pos = cache.details.find((b: cacheDetails) => b.blockId === blockRefId).position;
-                                console.log('pos',pos)
-                                console.log(pos.start.line,pos.end.line)
-                                fileContents = fileContents.split("\n").slice(pos.start.line,pos.end.line+1).join("\n");
-                                fileContents = fileContents.replace("^" + blockRefId, "");
-                            } else if (cache.details && linkInfo.link.contains("#")) {//header link
-                                const headerId = linkInfo.link.substr(linkInfo.link.indexOf("#") + 1);
-                                console.log('headerId', headerId)
-                                const f = new fileCacheAnalyzer(this.plugin, file.path);
-                                let pos = f.getPositionOfHeaderAndItsChildren(headerId);
-                                fileContents = fileContents.split("\n").slice(pos.start.line,pos.end.line+1).join("\n");
-                            }
-                            const startEP: EditorPosition = { line: linkInfo.position.start.line, ch: linkInfo.position.start.col };
-                            const endEP: EditorPosition = { line: linkInfo.position.end.line, ch: linkInfo.position.end.col };
-                            
-                            ctx.editor.replaceRange(fileContents, startEP, endEP);
-                            console.log(fileContents);
-                        }
-                        menu.addItem(item => {
-                            item
-                                .setTitle("Replace link with text")
-                                .setIcon("lines-of-text")
-                                .onClick(async () => await copyRefFunction(true));
-                        });
-                        menu.addItem(item => {
-                            item
-                                .setTitle("Replace link with text & alias")
-                                .setIcon("lines-of-text")
-                                .onClick(async () => await copyRefFunction(false));
-                        });
-                    }
-
+                const linkInfo = transporter.testIfCursorIsOnALink(this.plugin);
+                if (linkInfo) { 
+                    menu.addItem(item => {
+                        item
+                            .setTitle("Replace link with text")
+                            .setIcon("lines-of-text")
+                            .onClick(async () => await transporter.copyBlockReferenceToCurrentCusorLocation(this.plugin, linkInfo, false));
+                    });
+                    menu.addItem(item => {
+                        item
+                            .setTitle("Replace link with text & alias")
+                            .setIcon("lines-of-text")
+                            .onClick(async () => await transporter.copyBlockReferenceToCurrentCusorLocation(this.plugin, linkInfo, true));
+                    });
                 }
-
 
                 if (this.plugin.settings.enableContextMenuCommands)
                     for (const value of this.commands)
