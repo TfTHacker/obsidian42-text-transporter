@@ -1,21 +1,23 @@
 import ThePlugin from "../main";
 import { genericFuzzySuggester, suggesterItem } from "./genericFuzzySuggester";
+import { cacheDetails, fileCacheAnalyzer } from "../utils/fileCacheAnalyzer";
 import * as transporter from "../utils/transporterFunctions"
-import { Notice, MarkdownView } from "obsidian";
+import { Notice, MarkdownView, LinkCache, getLinkpath, TFile, CachedMetadata, BlockCache, HeadingCache, Pos, EditorPosition, EditorRange } from "obsidian";
+import { link } from "fs";
 
 export default class pluginCommands {
     plugin: ThePlugin;
     commands = [
         {
-            caption: "Select current line", shortcut: "SL", menu: false,  icon: "highlight-glyph",
+            caption: "Select current line", shortcut: "SL", menu: false, icon: "highlight-glyph",
             command: async (): Promise<void> => transporter.selectCurrentLine()
         },
         {
-            caption: "Select block - previous", shortcut: "BN", menu: false, icon: "highlight-glyph",
+            caption: "Select block - previous", shortcut: "BP", menu: false, icon: "highlight-glyph",
             command: async (): Promise<void> => transporter.selectAdjacentBlock(this.plugin, false)
         },
         {
-            caption: "Select block - next", shortcut: "BP", menu: false, icon: "highlight-glyph",
+            caption: "Select block - next", shortcut: "BN", menu: false, icon: "highlight-glyph",
             command: async (): Promise<void> => transporter.selectAdjacentBlock(this.plugin, true)
         },
         {
@@ -31,11 +33,11 @@ export default class pluginCommands {
             command: async (): Promise<Array<string>> => transporter.addBlockRefsToSelection(this.plugin, true)
         },
         {
-            caption: "Copy block as a BLOCK REFERENCE", shortcut: "CC", menu: true, icon: "blocks",
+            caption: "Copy embeded block reference", shortcut: "CC", menu: true, icon: "blocks",
             command: async (): Promise<string> => transporter.copyBlockRefToClipboard(this.plugin, true, false)
         },
         {
-            caption: "Copy block as an ALIASED block reference", shortcut: "CA", menu: true, icon: "blocks",
+            caption: "Copy embeded alias block reference", shortcut: "CA", menu: true, icon: "blocks",
             command: async (): Promise<string> => transporter.copyBlockRefToClipboard(this.plugin, true, true, this.plugin.settings.blockRefAliasIndicator)
         },
         {
@@ -105,9 +107,62 @@ export default class pluginCommands {
 
         this.plugin.registerEvent(
             this.plugin.app.workspace.on("editor-menu", (menu) => {
-                if(this.plugin.settings.enableContextMenuCommands) 
-                    for (const value of this.commands) 
-                        if (value.menu === true) 
+                const ctx = transporter.getContextObjects();
+                if (ctx.cache.links || ctx.cache.embeds || ctx.cache.headings) {
+                    console.clear()
+                    const ch = ctx.editor.getCursor().ch;
+                    console.log(ch)
+                    let linkInfo = ctx.cache.links.find((l: LinkCache) => l.position.start.line === ctx.currentLine && (ch >= l.position.start.col && ch <= l.position.end.col));
+                    if (!linkInfo)
+                        linkInfo = ctx.cache.embeds.find((l: LinkCache) => l.position.start.line === ctx.currentLine && (ch >= l.position.start.col && ch <= l.position.end.col));
+                    if (linkInfo) { //cursor point contains a link, provide menu options
+                        console.log("linkInfo", linkInfo)
+                        const copyRefFunction = async (leaveAliasToFile:boolean)=>{
+                            const file: TFile = this.plugin.app.metadataCache.getFirstLinkpathDest(getLinkpath(linkInfo.link), "/");
+                            let fileContents = await this.plugin.app.vault.read(file);
+                            const cache = new fileCacheAnalyzer(this.plugin, file.path);
+                            console.log('cache',cache)
+                            if (cache.details && linkInfo.link.includes("^")) { //blockref
+                                const blockRefId = linkInfo.link.substr(linkInfo.link.indexOf("^") + 1);
+                                console.log('blockRefId',blockRefId)
+                                let pos = cache.details.find((b: cacheDetails) => b.blockId === blockRefId).position;
+                                console.log('pos',pos)
+                                console.log(pos.start.line,pos.end.line)
+                                fileContents = fileContents.split("\n").slice(pos.start.line,pos.end.line+1).join("\n");
+                                fileContents = fileContents.replace("^" + blockRefId, "");
+                            } else if (cache.details && linkInfo.link.contains("#")) {//header link
+                                const headerId = linkInfo.link.substr(linkInfo.link.indexOf("#") + 1);
+                                console.log('headerId', headerId)
+                                const f = new fileCacheAnalyzer(this.plugin, file.path);
+                                let pos = f.getPositionOfHeaderAndItsChildren(headerId);
+                                fileContents = fileContents.split("\n").slice(pos.start.line,pos.end.line+1).join("\n");
+                            }
+                            const startEP: EditorPosition = { line: linkInfo.position.start.line, ch: linkInfo.position.start.col };
+                            const endEP: EditorPosition = { line: linkInfo.position.end.line, ch: linkInfo.position.end.col };
+                            
+                            ctx.editor.replaceRange(fileContents, startEP, endEP);
+                            console.log(fileContents);
+                        }
+                        menu.addItem(item => {
+                            item
+                                .setTitle("Replace link with text")
+                                .setIcon("lines-of-text")
+                                .onClick(async () => await copyRefFunction(true));
+                        });
+                        menu.addItem(item => {
+                            item
+                                .setTitle("Replace link with text & alias")
+                                .setIcon("lines-of-text")
+                                .onClick(async () => await copyRefFunction(false));
+                        });
+                    }
+
+                }
+
+
+                if (this.plugin.settings.enableContextMenuCommands)
+                    for (const value of this.commands)
+                        if (value.menu === true)
                             menu.addItem(item => {
                                 item
                                     .setTitle(value.caption)
