@@ -218,7 +218,7 @@ async function addBlockRefsToSelection(plugin: ThePlugin, copyToClipbard: boolea
 // displays a file selection  suggester,  then the contents of the file, then calls the callback  with:
 // Callback function  will receive: Path+FileName, file contents as an array and line choosen
 // if returnEndPoint = true, another suggester is shown so user can select endpoint of selection from file
-async function displayFileLineSuggester(plugin: ThePlugin, returnEndPoint: boolean, callback): Promise<void> {
+async function displayFileLineSuggester(plugin: ThePlugin, returnEndPoint: boolean, showTop:boolean, callback): Promise<void> {
     const activeFile = getContextObjects().currentFile.path;
     const fileList: Array<suggesterItem> = await plugin.fs.getAllFiles("/");
     for (let i = 0; i < fileList.length; i++)
@@ -286,20 +286,22 @@ async function displayFileLineSuggester(plugin: ThePlugin, returnEndPoint: boole
         for (const [key, value] of Object.entries(curContent.split('\n')))
             fileContentsArray.push({ display: value, info: key });
 
+        if(showTop) fileContentsArray.unshift( { display: "-- Top of file --", info: -1});
+
         const firstLinechooser = new genericFuzzySuggester(plugin);
         firstLinechooser.setSuggesterData(fileContentsArray);
         firstLinechooser.setPlaceholder("Select the line from file")
 
         await firstLinechooser.display(async (iFileLocation: suggesterItem, evt: MouseEvent | KeyboardEvent) => {
             let startFilePosition = Number(iFileLocation.item.info);
+            if(showTop) fileContentsArray.splice(0,1); // remove "-- Top of File -- "
             if (returnEndPoint) { //if expecting endpoint, show suggester again
-                if (Number(startFilePosition) === fileContentsArray.length - 1) {
+                if (startFilePosition === fileContentsArray.length - 1) {
                     //only one element in file, or selection is end of file
                     callback(targetFileName, fileContentsArray, startFilePosition, startFilePosition, evt);
                 } else {
                     startFilePosition = startFilePosition === -1 ? 0 : startFilePosition;
-                    const endPointArray = fileContentsArray.slice(startFilePosition + 1);
-                    endPointArray.unshift({ display: "-- Bottom of File --", info: fileContentsArray.length - 1 });
+                    const endPointArray = fileContentsArray.slice(startFilePosition);
                     const lastLineChooser = new genericFuzzySuggester(plugin);
                     lastLineChooser.setSuggesterData(endPointArray);
                     lastLineChooser.setPlaceholder("Select the last line for the selection")
@@ -321,7 +323,7 @@ async function copyOrPushLineOrSelectionToNewLocation(plugin: ThePlugin, copySel
     const ctx = getContextObjects();
     let selectedText = ctx.editor.getSelection();
     if (selectedText === "") selectedText = ctx.editor.getLine(ctx.currentLine); //get text from current line
-    await displayFileLineSuggester(plugin, false, (targetFileName, fileContentsArray, lineNumber) => {
+    await displayFileLineSuggester(plugin, false, true, (targetFileName, fileContentsArray, lineNumber) => {
 
         // @ts-ignore
         fileContentsArray.splice(Number(lineNumber) + 1, 0, { display: selectedText, info: "" });
@@ -342,7 +344,7 @@ async function copyOrPushLineOrSelectionToNewLocation(plugin: ThePlugin, copySel
 
 // Pull (move) a line or lines from another file
 async function copyOrPulLineOrSelectionFromAnotherLocation(plugin: ThePlugin, copySelection: boolean): Promise<void> {
-    await displayFileLineSuggester(plugin, true, (targetFileName, fileContentsArray, startLine, endLine) => {
+    await displayFileLineSuggester(plugin, true, false, (targetFileName, fileContentsArray, startLine, endLine) => {
         startLine = startLine === -1 ? startLine = 0 : startLine;
         endLine = endLine === -1 ? endLine = 0 : endLine;
         let stringToInsertIntoSelection = "";
@@ -365,7 +367,7 @@ async function copyOrPulLineOrSelectionFromAnotherLocation(plugin: ThePlugin, co
 
 //copy a block reference of the current line to another file
 async function pushBlockReferenceToAnotherFile(plugin: ThePlugin): Promise<void> {
-    await displayFileLineSuggester(plugin, false, async (targetFileName, fileContentsArray, startLine) => {
+    await displayFileLineSuggester(plugin, false, true, async (targetFileName, fileContentsArray, startLine) => {
         const results = await addBlockRefsToSelection(plugin, false);
         let blockRefs = "";
         const fileName = getContextObjects().currentFile.path;
@@ -385,12 +387,9 @@ async function pushBlockReferenceToAnotherFile(plugin: ThePlugin): Promise<void>
 
 // pull a block reference from another file and insert into the current location
 async function pullBlockReferenceFromAnotherFile(plugin: ThePlugin): Promise<void> {
-    await displayFileLineSuggester(plugin, true, async (targetFileName, fileContentsArray, startLine, endLine) => {
-        console.log('a', startLine, endLine)
+    await displayFileLineSuggester(plugin, true, false, async (targetFileName, fileContentsArray, startLine, endLine) => {
         startLine = startLine === -1 ? startLine = 0 : startLine;
         endLine = endLine === -1 ? endLine = 0 : endLine;
-        console.log('b', startLine, endLine)
-
         const f = new fileCacheAnalyzer(plugin, targetFileName);
         const fileContents = (await plugin.app.vault.adapter.read(targetFileName)).split("\n");
         let fileChanged = false;
@@ -439,7 +438,7 @@ async function pullBlockReferenceFromAnotherFile(plugin: ThePlugin): Promise<voi
     });
 } //pullBlockReferenceFromAnotherFile
 
-function testIfCursorIsOnALink(plugin: ThePlugin): LinkCache {
+function testIfCursorIsOnALink(): LinkCache {
     const ctx = getContextObjects();
     if (ctx.cache.links || ctx.cache.embeds || ctx.cache.headings) {
         const ch = ctx.editor.getCursor().ch;
@@ -460,12 +459,12 @@ async function copyBlockReferenceToCurrentCusorLocation(plugin: ThePlugin, linkI
     const cache = new fileCacheAnalyzer(plugin, file.path);
     if (cache.details && linkInfo.link.includes("^")) { //blockref
         const blockRefId = linkInfo.link.substr(linkInfo.link.indexOf("^") + 1);
-        let pos = cache.details.find((b: cacheDetails) => b.blockId === blockRefId).position;
+        const pos = cache.details.find((b: cacheDetails) => b.blockId === blockRefId).position;
         fileContents = fileContents.split("\n").slice(pos.start.line, pos.end.line + 1).join("\n");
         fileContents = fileContents.replace("^" + blockRefId, "");
     } else if (cache.details && linkInfo.link.contains("#")) {//header link
         const headerId = linkInfo.link.substr(linkInfo.link.indexOf("#") + 1);
-        let pos = cache.getPositionOfHeaderAndItsChildren(headerId);
+        const pos = cache.getPositionOfHeaderAndItsChildren(headerId);
         fileContents = fileContents.split("\n").slice(pos.start.line, pos.end.line + 1).join("\n");
     }
     if (leaveAliasToFile) fileContents += " [[" + linkInfo.link + "|*]]";

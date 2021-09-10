@@ -1,8 +1,7 @@
 import ThePlugin from "../main";
 import { genericFuzzySuggester, suggesterItem } from "./genericFuzzySuggester";
-import { cacheDetails, fileCacheAnalyzer } from "../utils/fileCacheAnalyzer";
 import * as transporter from "../utils/transporterFunctions"
-import { Notice, MarkdownView, LinkCache, getLinkpath, TFile, CachedMetadata, BlockCache, HeadingCache, Pos, EditorPosition, EditorRange } from "obsidian";
+import { Notice, MarkdownView } from "obsidian";
 
 export default class pluginCommands {
     plugin: ThePlugin;
@@ -28,9 +27,9 @@ export default class pluginCommands {
             command: async (): Promise<void> => transporter.selectCurrentSection(this.plugin, false)
         },
         {
-            caption: "Replace link with text", shortcut: "ABI", menu: true, icon: "blocks",
-            command: async () => {
-                const linkInfo = transporter.testIfCursorIsOnALink(this.plugin);
+            caption: "Replace link with text", shortcut: "ABI", menu: false, icon: "blocks",
+            command: async (): Promise<void> => {
+                const linkInfo = transporter.testIfCursorIsOnALink();
                 if (linkInfo) 
                     await transporter.copyBlockReferenceToCurrentCusorLocation(this.plugin, linkInfo, false);
                 else
@@ -38,9 +37,9 @@ export default class pluginCommands {
             }
         },
         {
-            caption: "Replace link with text & alias", shortcut: "ABI", menu: true, icon: "blocks",
-            command: async () => {
-                const linkInfo = transporter.testIfCursorIsOnALink(this.plugin);
+            caption: "Replace link with text & alias", shortcut: "ABI", menu: false, icon: "blocks",
+            command: async (): Promise<void> => {
+                const linkInfo = transporter.testIfCursorIsOnALink();
                 if (linkInfo) 
                     await transporter.copyBlockReferenceToCurrentCusorLocation(this.plugin, linkInfo, true);
                 else
@@ -126,7 +125,7 @@ export default class pluginCommands {
 
         this.plugin.registerEvent(
             this.plugin.app.workspace.on("editor-menu", (menu) => {
-                const linkInfo = transporter.testIfCursorIsOnALink(this.plugin);
+                const linkInfo = transporter.testIfCursorIsOnALink();
                 if (linkInfo) { 
                     menu.addItem(item => {
                         item

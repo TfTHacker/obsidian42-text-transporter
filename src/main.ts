@@ -3,8 +3,6 @@ import fileSystem from "./utils/fileSystem";
 import pluginCommands from "./ui/cpCommands";
 import { Settings, DEFAULT_SETTINGS, SettingsTab } from './ui/settings';
 import { addIcons } from './ui/icons';
-import { fileCacheAnalyzer } from "./utils/fileCacheAnalyzer";
-import * as transporter from "./utils/transporterFunctions";
 
 export default class ThePlugin extends Plugin {
 	appName = "Obsidian42 - Text Transporter";
@@ -19,20 +17,10 @@ export default class ThePlugin extends Plugin {
 		console.log("loading " + this.appName);
 		this.fs = new fileSystem(this, this.dnpHeaderForFileSelector);
 		this.commands = new pluginCommands(this)
-
 		await this.loadSettings();
-
 		addIcons();
-
-		if (this.settings.enableRibbon)
-			this.configureRibbonCommand();
-
+		if (this.settings.enableRibbon) this.configureRibbonCommand();
 		this.addSettingTab(new SettingsTab(this.app, this));
-
-		// const ctx = transporter.getContextObjects();
-		// const f = new fileCacheAnalyzer(this, ctx.currentFile.path);
-		// console.log( JSON.stringify(f.getPositionOfHeaderAndItsChildren("test 1"), 0,2 ))
-
 	}
 
 	onunload(): void { console.log("unloading " + this.appName) }
