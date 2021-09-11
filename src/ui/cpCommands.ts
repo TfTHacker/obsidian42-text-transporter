@@ -2,10 +2,15 @@ import ThePlugin from "../main";
 import { genericFuzzySuggester, suggesterItem } from "./genericFuzzySuggester";
 import * as transporter from "../utils/transporterFunctions"
 import { Notice, MarkdownView } from "obsidian";
+import quickCaptureModal from "./quickCapture";
 
 export default class pluginCommands {
     plugin: ThePlugin;
     commands = [
+        {
+            caption: "Quick Capture", shortcut: "QC", menu: false, icon: "highlight-glyph",
+            command: async (): Promise<void> => (new quickCaptureModal(this.plugin)).open()
+        },
         {
             caption: "Select current line", shortcut: "SL", menu: false, icon: "highlight-glyph",
             command: async (): Promise<void> => transporter.selectCurrentLine()

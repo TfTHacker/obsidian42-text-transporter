@@ -39,6 +39,9 @@ Check out this quick video to see what it is all about:
 *  Select current line and expand up into previous block
 *  Select current line and expand down into next block
 
+# Quick Capture
+* 
+
 ## Boookmarks
 * TBD: To document
 * CTRL+Click on a bookmark destination

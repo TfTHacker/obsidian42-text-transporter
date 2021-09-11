@@ -291,7 +291,6 @@ async function displayFileLineSuggester(plugin: ThePlugin, returnEndPoint: boole
             }
         }
 
-        console.log('here', targetFileName)
         const curContent = await plugin.app.vault.adapter.read(targetFileName);
         const fileContentsArray: Array<suggesterItem> = [];
 
@@ -302,9 +301,9 @@ async function displayFileLineSuggester(plugin: ThePlugin, returnEndPoint: boole
 
         const firstLinechooser = new genericFuzzySuggester(plugin);
         firstLinechooser.setPlaceholder("Select the line from file")
-        if(fileContentsStartingLine>0)
+        if (fileContentsStartingLine > 0)
             firstLinechooser.setSuggesterData(fileContentsArray.slice(fileContentsStartingLine));
-        else 
+        else
             firstLinechooser.setSuggesterData(fileContentsArray);
 
         await firstLinechooser.display(async (iFileLocation: suggesterItem, evt: MouseEvent | KeyboardEvent) => {
@@ -334,9 +333,10 @@ async function displayFileLineSuggester(plugin: ThePlugin, returnEndPoint: boole
 
 // Copies or pushes (transfers) the current line or selection to another file
 // copySelection = true for copy, false for move
-async function copyOrPushLineOrSelectionToNewLocation(plugin: ThePlugin, copySelection: boolean): Promise<void> {
+// defaultSelectionText  (use this function to push text, without changes to local editor)
+async function copyOrPushLineOrSelectionToNewLocation(plugin: ThePlugin, copySelection: boolean, defaultSelectionText = ""): Promise<void> {
     const ctx = getContextObjects();
-    let selectedText = ctx.editor.getSelection();
+    let selectedText = defaultSelectionText === "" ? ctx.editor.getSelection() : defaultSelectionText;
     if (selectedText === "") selectedText = ctx.editor.getLine(ctx.currentLine); //get text from current line
     await displayFileLineSuggester(plugin, false, true, false, (targetFileName, fileContentsArray, lineNumber) => {
         if (lineNumber === -1) { //go to top of file, but test for YAML
@@ -500,5 +500,6 @@ export {
     indentifyCurrentSection, copyOrPushLineOrSelectionToNewLocation,
     copyOrPulLineOrSelectionFromAnotherLocation, addBlockRefsToSelection,
     pushBlockReferenceToAnotherFile, pullBlockReferenceFromAnotherFile,
-    testIfCursorIsOnALink, copyBlockReferenceToCurrentCusorLocation
+    testIfCursorIsOnALink, copyBlockReferenceToCurrentCusorLocation,
+    displayFileLineSuggester
 }
