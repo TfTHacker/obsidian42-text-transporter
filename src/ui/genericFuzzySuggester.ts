@@ -1,4 +1,4 @@
-import { FuzzySuggestModal, FuzzyMatch } from 'obsidian';
+import { Notice, FuzzySuggestModal, FuzzyMatch, KeymapEventHandler } from 'obsidian';
 import ThePlugin from '../main';
 
 interface suggesterItem {
@@ -21,6 +21,7 @@ class genericFuzzySuggester extends FuzzySuggestModal<suggesterItem>{
 
     constructor(plugin: ThePlugin) {
         super(plugin.app);
+        this.scope.register(["Shift"],"Enter", evt => this.shiftEnterTrigger(evt));
     }
 
     setSuggesterData(suggesterData: Array<suggesterItem>): void { this.data = suggesterData }
@@ -29,6 +30,7 @@ class genericFuzzySuggester extends FuzzySuggestModal<suggesterItem>{
         this.callbackFunction = callBack;
         this.open();
     }
+
     getItems(): suggesterItem[] { return this.data  }
 
     getItemText(item: suggesterItem): string { return item.display }
@@ -37,8 +39,19 @@ class genericFuzzySuggester extends FuzzySuggestModal<suggesterItem>{
 
     renderSuggestion(item: FuzzyMatch<suggesterItem>, el: HTMLElement): void { el.createEl('div', { text: item.item.display }) }
 
-    onChooseSuggestion(item: FuzzyMatch<suggesterItem>, evt: MouseEvent | KeyboardEvent): void { this.callbackFunction(item, evt) }
+    shiftEnterTrigger(evt: KeyboardEvent)  {
+        console.log('shiftEnter')
+        const selectedText = document.querySelector(".suggestion-item.is-selected div").textContent;
+        const item = this.data.find( i => i.display === selectedText );
+        if(item) {
+            this.invokeCallback(item, evt);
+            this.close();
+        }
+    }
 
+    onChooseSuggestion(item: FuzzyMatch<suggesterItem>, evt: MouseEvent | KeyboardEvent): void { this.invokeCallback(item.item, evt) }
+
+    invokeCallback(item: suggesterItem, evt: MouseEvent | KeyboardEvent): void { this.callbackFunction(item, evt) }
 }
 
 export { suggesterItem, genericFuzzySuggester };

@@ -245,12 +245,11 @@ async function displayFileLineSuggester(plugin: ThePlugin, returnEndPoint: boole
     chooser.setPlaceholder("Select a file")
 
     await chooser.display(async (i: suggesterItem, evt: MouseEvent | KeyboardEvent) => {
-
         const controlKeyUsed = evt.ctrlKey;
         let fileContentsStartingLine = 0;
 
         // @ts-ignore
-        let targetFileName = i.item.info;
+        let targetFileName = i.info;
 
         if (plugin.settings.enableDNP && targetFileName === plugin.dnpHeaderForFileSelector) {
             let dnp = getDailyNote(moment(), getAllDailyNotes());
@@ -309,7 +308,7 @@ async function displayFileLineSuggester(plugin: ThePlugin, returnEndPoint: boole
             firstLinechooser.setSuggesterData(fileContentsArray);
 
         await firstLinechooser.display(async (iFileLocation: suggesterItem, evt: MouseEvent | KeyboardEvent) => {
-            let startFilePosition = Number(iFileLocation.item.info);
+            let startFilePosition = Number(iFileLocation.info);
             if (showTop) fileContentsArray.splice(0, 1); // remove "-- Top of File -- "
             if (returnEndPoint) { //if expecting endpoint, show suggester again
                 if (startFilePosition === fileContentsArray.length - 1) {
@@ -322,7 +321,7 @@ async function displayFileLineSuggester(plugin: ThePlugin, returnEndPoint: boole
                     lastLineChooser.setSuggesterData(endPointArray);
                     lastLineChooser.setPlaceholder("Select the last line for the selection")
                     await lastLineChooser.display(async (iFileLocationEndPoint: suggesterItem, evt: MouseEvent | KeyboardEvent) => {
-                        callback(targetFileName, fileContentsArray, startFilePosition, Number(iFileLocationEndPoint.item.info), evt);
+                        callback(targetFileName, fileContentsArray, startFilePosition, Number(iFileLocationEndPoint.info), evt);
                     });
                 }
             } else {

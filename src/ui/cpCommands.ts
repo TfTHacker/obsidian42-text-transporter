@@ -100,8 +100,7 @@ export default class pluginCommands {
             new Notice("No document in edit mode");
             return;
         }
-
-        const gfs = new genericFuzzySuggester(this.plugin);
+                const gfs = new genericFuzzySuggester(this.plugin);
         const cpCommands: Array<suggesterItem> = [];
         for (const cmd of this.commands)
             cpCommands.push({ display: cmd.caption, info: cmd.command });
