@@ -72,8 +72,8 @@ export class SettingsTab extends PluginSettingTab {
 
 
 		new Setting(containerEl)
-			.setName("Alias Indicator")
-			.setDesc("Indicator used for an aliased block reference.")
+			.setName("Alias Placeholder")
+			.setDesc("Placeholder text used for an aliased block reference.")
 			.addText((text) =>
 				text
 					.setValue(this.plugin.settings.blockRefAliasIndicator)

@@ -218,7 +218,9 @@ async function addBlockRefsToSelection(plugin: ThePlugin, copyToClipbard: boolea
 // displays a file selection  suggester,  then the contents of the file, then calls the callback  with:
 // Callback function  will receive: Path+FileName, file contents as an array and line choosen
 // if returnEndPoint = true, another suggester is shown so user can select endpoint of selection from file
-async function displayFileLineSuggester(plugin: ThePlugin, returnEndPoint: boolean, showTop:boolean, callback): Promise<void> {
+// show top will diplsay -- top at top of suggester
+// pullTypeRequest - iff it is a pull type reqeust, this should be true, some commands might need different behavior if a pull
+async function displayFileLineSuggester(plugin: ThePlugin, returnEndPoint: boolean, showTop: boolean, pullTypeRequest: boolean, callback): Promise<void> {
     const activeFile = getContextObjects().currentFile.path;
     const fileList: Array<suggesterItem> = await plugin.fs.getAllFiles("/");
     for (let i = 0; i < fileList.length; i++)
@@ -242,7 +244,11 @@ async function displayFileLineSuggester(plugin: ThePlugin, returnEndPoint: boole
     chooser.setSuggesterData(fileList);
     chooser.setPlaceholder("Select a file")
 
-    await chooser.display(async (i: suggesterItem) => {
+    await chooser.display(async (i: suggesterItem, evt: MouseEvent | KeyboardEvent) => {
+
+        const controlKeyUsed = evt.ctrlKey;
+        let fileContentsStartingLine = 0;
+
         // @ts-ignore
         let targetFileName = i.item.info;
 
@@ -263,10 +269,10 @@ async function displayFileLineSuggester(plugin: ThePlugin, returnEndPoint: boole
             if (command === "BOTTOM" || command !== "TOP") {
                 if (command === "BOTTOM")
                     lineNumber = fileContentsArray.length - 1;
-                else {
+                else { // find location in file
                     for (let i = 0; i < fileContentsArray.length; i++) {
                         if (fileContentsArray[i].display.toLocaleUpperCase().trim() === command) {
-                            lineNumber = i;
+                            lineNumber = pullTypeRequest === true ? i + 1 : i;
                             break;
                         }
                     }
@@ -276,25 +282,35 @@ async function displayFileLineSuggester(plugin: ThePlugin, returnEndPoint: boole
                     }
                 }
             }
-            callback(filePath, fileContentsArray, lineNumber, lineNumber);
-            return;
+            if (!controlKeyUsed) {
+                callback(filePath, fileContentsArray, lineNumber, lineNumber);
+                return;
+            } else {  // use the bookmarked location as starting point for next step in commands
+                fileContentsStartingLine = lineNumber;
+                targetFileName = filePath;
+                showTop = false;
+            }
         }
 
+        console.log('here', targetFileName)
         const curContent = await plugin.app.vault.adapter.read(targetFileName);
         const fileContentsArray: Array<suggesterItem> = [];
 
         for (const [key, value] of Object.entries(curContent.split('\n')))
             fileContentsArray.push({ display: value, info: key });
 
-        if(showTop) fileContentsArray.unshift( { display: "-- Top of file --", info: -1});
+        if (showTop) fileContentsArray.unshift({ display: "-- Top of file --", info: -1 });
 
         const firstLinechooser = new genericFuzzySuggester(plugin);
-        firstLinechooser.setSuggesterData(fileContentsArray);
         firstLinechooser.setPlaceholder("Select the line from file")
+        if(fileContentsStartingLine>0)
+            firstLinechooser.setSuggesterData(fileContentsArray.slice(fileContentsStartingLine));
+        else 
+            firstLinechooser.setSuggesterData(fileContentsArray);
 
         await firstLinechooser.display(async (iFileLocation: suggesterItem, evt: MouseEvent | KeyboardEvent) => {
             let startFilePosition = Number(iFileLocation.item.info);
-            if(showTop) fileContentsArray.splice(0,1); // remove "-- Top of File -- "
+            if (showTop) fileContentsArray.splice(0, 1); // remove "-- Top of File -- "
             if (returnEndPoint) { //if expecting endpoint, show suggester again
                 if (startFilePosition === fileContentsArray.length - 1) {
                     //only one element in file, or selection is end of file
@@ -323,9 +339,12 @@ async function copyOrPushLineOrSelectionToNewLocation(plugin: ThePlugin, copySel
     const ctx = getContextObjects();
     let selectedText = ctx.editor.getSelection();
     if (selectedText === "") selectedText = ctx.editor.getLine(ctx.currentLine); //get text from current line
-    await displayFileLineSuggester(plugin, false, true, (targetFileName, fileContentsArray, lineNumber) => {
-
-        // @ts-ignore
+    await displayFileLineSuggester(plugin, false, true, false, (targetFileName, fileContentsArray, lineNumber) => {
+        if (lineNumber === -1) { //go to top of file, but test for YAML
+            const f = new fileCacheAnalyzer(plugin, targetFileName);
+            if (f.details.length > 0 && f.details[0].type === "yaml")
+                lineNumber = f.details[0].lineEnd;
+        }
         fileContentsArray.splice(Number(lineNumber) + 1, 0, { display: selectedText, info: "" });
         let newContents = "";
         for (const line of fileContentsArray)
@@ -344,7 +363,7 @@ async function copyOrPushLineOrSelectionToNewLocation(plugin: ThePlugin, copySel
 
 // Pull (move) a line or lines from another file
 async function copyOrPulLineOrSelectionFromAnotherLocation(plugin: ThePlugin, copySelection: boolean): Promise<void> {
-    await displayFileLineSuggester(plugin, true, false, (targetFileName, fileContentsArray, startLine, endLine) => {
+    await displayFileLineSuggester(plugin, true, false, true, (targetFileName, fileContentsArray, startLine, endLine) => {
         startLine = startLine === -1 ? startLine = 0 : startLine;
         endLine = endLine === -1 ? endLine = 0 : endLine;
         let stringToInsertIntoSelection = "";
@@ -367,7 +386,12 @@ async function copyOrPulLineOrSelectionFromAnotherLocation(plugin: ThePlugin, co
 
 //copy a block reference of the current line to another file
 async function pushBlockReferenceToAnotherFile(plugin: ThePlugin): Promise<void> {
-    await displayFileLineSuggester(plugin, false, true, async (targetFileName, fileContentsArray, startLine) => {
+    await displayFileLineSuggester(plugin, false, true, false, async (targetFileName, fileContentsArray, startLine) => {
+        if (startLine === -1) { //go to top of file, but test for YAML
+            const f = new fileCacheAnalyzer(plugin, targetFileName);
+            if (f.details.length > 0 && f.details[0].type === "yaml")
+                startLine = f.details[0].lineEnd;
+        }
         const results = await addBlockRefsToSelection(plugin, false);
         let blockRefs = "";
         const fileName = getContextObjects().currentFile.path;
@@ -387,7 +411,7 @@ async function pushBlockReferenceToAnotherFile(plugin: ThePlugin): Promise<void>
 
 // pull a block reference from another file and insert into the current location
 async function pullBlockReferenceFromAnotherFile(plugin: ThePlugin): Promise<void> {
-    await displayFileLineSuggester(plugin, true, false, async (targetFileName, fileContentsArray, startLine, endLine) => {
+    await displayFileLineSuggester(plugin, true, false, true, async (targetFileName, fileContentsArray, startLine, endLine) => {
         startLine = startLine === -1 ? startLine = 0 : startLine;
         endLine = endLine === -1 ? endLine = 0 : endLine;
         const f = new fileCacheAnalyzer(plugin, targetFileName);

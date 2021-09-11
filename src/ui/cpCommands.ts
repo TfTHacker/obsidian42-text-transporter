@@ -51,7 +51,7 @@ export default class pluginCommands {
             command: async (): Promise<Array<string>> => transporter.addBlockRefsToSelection(this.plugin, true)
         },
         {
-            caption: "Copy embeded block reference", shortcut: "CC", menu: true, icon: "blocks",
+            caption: "Copy embeded block reference for this line", shortcut: "CC", menu: true, icon: "blocks",
             command: async (): Promise<string> => transporter.copyBlockRefToClipboard(this.plugin, true, false)
         },
         {
