@@ -9,9 +9,7 @@ In addition, it makes it easy to work with block references in yours vault.
 Check out this quick video to see what it is all about:
 
 <a href="https://www.loom.com/share/6968895a4a7244acbce071068152aa21" target="_blank">
-
     <img style="max-width:300px;" src="https://cdn.loom.com/sessions/thumbnails/6968895a4a7244acbce071068152aa21-with-play.gif">
-
 </a>
 
 ## Block Reference Commands
