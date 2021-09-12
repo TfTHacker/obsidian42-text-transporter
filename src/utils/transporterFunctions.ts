@@ -235,7 +235,7 @@ async function displayFileLineSuggester(plugin: ThePlugin, returnEndPoint: boole
         for (let i = bookmarks.length - 1; i >= 0; i--) {
             let filePath = bookmarks[i];
             if (filePath.search(";") > 0) filePath = filePath.substr(0, filePath.search(";"));
-            if (await plugin.app.vault.adapter.exists(filePath))
+            if (filePath === "DNPTODAY" || await plugin.app.vault.adapter.exists(filePath))
                 fileList.unshift({ display: "Bookmark: " + bookmarks[i], info: bookmarks[i] })
         }
     }
@@ -258,8 +258,15 @@ async function displayFileLineSuggester(plugin: ThePlugin, returnEndPoint: boole
             targetFileName = dnp.path;
         } else if (targetFileName.search(";") > 0) {
             // a bookmark was selected with a command. process callback
-            const filePath = targetFileName.substring(0, targetFileName.search(";"));
+            let filePath = targetFileName.substring(0, targetFileName.search(";"));
             const command = targetFileName.substring(filePath.length + 1).toLocaleUpperCase().trim();
+            if (filePath === "DNPTODAY") {
+                let dnp = getDailyNote(moment(), getAllDailyNotes());
+                if (dnp === null)
+                    dnp = await createDailyNote(moment());
+                filePath = dnp.path;
+            } 
+            
             let lineNumber = -1; //default for top
             const fileContentsArray: Array<suggesterItem> = [];
             for (const [key, value] of Object.entries((await plugin.app.vault.adapter.read(filePath)).split('\n'))) {

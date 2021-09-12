@@ -93,6 +93,7 @@ export class SettingsTab extends PluginSettingTab {
 						If just the file path is provided, the file contents will be shown for insertion.
 						If after the file name there is a semicolon followed by either: TOP BOTTOM or text to find in the document as an insertion point. Example:\n
 						directory1/subdirectory/filename1.md;TOP  directory1/subdirectory/filename2.md;BOTTOM  directory1/subdirectory/filename3.md;# Inbox
+						Optionally DNPTODAY can be used in the place of a file name to default to today's Daily Notes Page
 						`)
 			.addTextArea((text) => {
 				text
@@ -102,7 +103,7 @@ export class SettingsTab extends PluginSettingTab {
 						this.plugin.settings.bookmarks = value;
 						this.plugin.saveData(this.plugin.settings);
 					})
-				text.inputEl.rows = 10;
+				text.inputEl.rows = 15;
 				text.inputEl.cols = 60;
 			});
 

@@ -45,6 +45,7 @@ Check out this quick video to see what it is all about:
 ## Boookmarks
 * TBD: To document
 * CTRL+Click on a bookmark destination
+* DNPTODAY variable in place of a file name
 
 # Manual installation 
 
