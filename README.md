@@ -9,6 +9,7 @@ In addition, it makes it easy to work with block references in yours vault.
 Check out this quick video to see what it is all about:
 
 <a href="https://www.loom.com/share/6968895a4a7244acbce071068152aa21" target="_blank">
+
     <img style="max-width:300px;" src="https://cdn.loom.com/sessions/thumbnails/6968895a4a7244acbce071068152aa21-with-play.gif">
 
 </a>
@@ -29,6 +30,9 @@ Check out this quick video to see what it is all about:
 *  Copy line(s) from another file
 *  Pull line(s) from another file
 *  Pull line(s) from another file as block references
+*  Modifier keys in the file suggester
+  + Press CTRL when clicking on an item and when the transport command is performed, the target file will be opened 
+  + Press Shift when clicking on a bookmark will continue the suggester process into selecting lines from the target file, but the first line will be based on the bookmark location 
 
 ## Selection commands
 
@@ -39,15 +43,20 @@ Check out this quick video to see what it is all about:
 *  Select current line and expand down into next block
 
 # Quick Capture
-* 
+* Opens a form where you can type in text and then quickly capture it to a file in your vault. The Quick Capture screen accepts enters for new lines. Ctrl+Enter will click the capture button.
 
 ## Boookmarks
-* TBD: To document
-* CTRL+Click on a bookmark destination
-* DNPTODAY variable in place of a file name
+
+* Bookmkarks are shortcuts to files in your vault. You can have multiple bookmarks defined in settings.
+* Bookmark is made up of the following parameters on one line:
+  + File Name seperated by semicolon ; then the command
+  + Command can be one of the following:
+    + TOP - for top of the file
+    + BOTTOM - for the bottom of the file
+    + the text on a line in your target file. If you provide this as the location, all transporter oeprations will happen from the line after the location
++ Instead of file name, you can use DNPTODAY. This will then use today's Daily Note Page as the bookmark page. The commands form above are supported
 
 # Manual installation 
-
 * Go to the releases page of this repository and find the most current release.
 * Download the 3 files main.js, manifest.json, and styles.css at the bottom of the release page.
 * Open your Obsidian Vault folder location on your computer (however you normally do with your Operating System)

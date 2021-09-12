@@ -18,13 +18,12 @@ export default class quickCaptureModal extends Modal {
     }
 
     onOpen(): void {
-        let previewEl: HTMLElement;
         let qcInput = "";
 
         this.titleEl.createEl("div", "Quick Capture").setText("Quick Capture")
 
         this.contentEl.createEl("form", {}, (formEl) => {
-            const qcInputEl = new Setting(formEl)
+            new Setting(formEl)
                 .addTextArea((textEl) => {
                     textEl.onChange(value => qcInput = value);
                     textEl.inputEl.rows = 5;
@@ -37,7 +36,6 @@ export default class quickCaptureModal extends Modal {
                     });
                     window.setTimeout(() => textEl.inputEl.focus(), 10);
                 })
-            previewEl = qcInputEl.descEl;
 
             formEl.createDiv("modal-button-container", (buttonContainerEl) => {
                 buttonContainerEl

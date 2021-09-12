@@ -1,6 +1,7 @@
 import ThePlugin from "../main";
 import { genericFuzzySuggester, suggesterItem } from "./genericFuzzySuggester";
 import * as transporter from "../utils/transporterFunctions"
+import * as selectionTools from "../utils/selectionFunctions";
 import { Notice, MarkdownView } from "obsidian";
 import quickCaptureModal from "./quickCapture";
 
@@ -8,31 +9,31 @@ export default class pluginCommands {
     plugin: ThePlugin;
     commands = [
         {
-            caption: "Quick Capture", shortcut: "QC", menu: false, icon: "highlight-glyph",
+            caption: "Quick Capture", shortcut: "QC", editModeOnly: false, menu: false, icon: "highlight-glyph",
             command: async (): Promise<void> => (new quickCaptureModal(this.plugin)).open()
         },
         {
-            caption: "Select current line", shortcut: "SL", menu: false, icon: "highlight-glyph",
-            command: async (): Promise<void> => transporter.selectCurrentLine()
+            caption: "Select current line", shortcut: "SL", editModeOnly: true, menu: false, icon: "highlight-glyph",
+            command: async (): Promise<void> => selectionTools.selectCurrentLine()
         },
         {
-            caption: "Select block - previous", shortcut: "BP", menu: false, icon: "highlight-glyph",
-            command: async (): Promise<void> => transporter.selectAdjacentBlock(this.plugin, false)
+            caption: "Select block - previous", shortcut: "BP", editModeOnly: true, menu: false, icon: "highlight-glyph",
+            command: async (): Promise<void> => selectionTools.selectAdjacentBlock(this.plugin, false)
         },
         {
-            caption: "Select block - next", shortcut: "BN", menu: false, icon: "highlight-glyph",
-            command: async (): Promise<void> => transporter.selectAdjacentBlock(this.plugin, true)
+            caption: "Select block - next", shortcut: "BN", editModeOnly: true, menu: false, icon: "highlight-glyph",
+            command: async (): Promise<void> => selectionTools.selectAdjacentBlock(this.plugin, true)
         },
         {
-            caption: "Select current line and expand up into previous block", shortcut: "SP", menu: false, icon: "highlight-glyph",
-            command: async (): Promise<void> => transporter.selectCurrentSection(this.plugin, true)
+            caption: "Select current line and expand up into previous block", shortcut: "SP", editModeOnly: true, menu: false, icon: "highlight-glyph",
+            command: async (): Promise<void> => selectionTools.selectCurrentSection(this.plugin, true)
         },
         {
-            caption: "Select current line and expand down into next block", shortcut: "SN", menu: false, icon: "highlight-glyph",
-            command: async (): Promise<void> => transporter.selectCurrentSection(this.plugin, false)
+            caption: "Select current line and expand down into next block", shortcut: "SN", editModeOnly: true, menu: false, icon: "highlight-glyph",
+            command: async (): Promise<void> => selectionTools.selectCurrentSection(this.plugin, false)
         },
         {
-            caption: "Replace link with text", shortcut: "ABI", menu: false, icon: "blocks",
+            caption: "Replace link with text", shortcut: "ABI", editModeOnly: true, menu: false, icon: "blocks",
             command: async (): Promise<void> => {
                 const linkInfo = transporter.testIfCursorIsOnALink();
                 if (linkInfo) 
@@ -42,7 +43,7 @@ export default class pluginCommands {
             }
         },
         {
-            caption: "Replace link with text & alias", shortcut: "ABI", menu: false, icon: "blocks",
+            caption: "Replace link with text & alias", shortcut: "ABI", editModeOnly: true, menu: false, icon: "blocks",
             command: async (): Promise<void> => {
                 const linkInfo = transporter.testIfCursorIsOnALink();
                 if (linkInfo) 
@@ -52,39 +53,39 @@ export default class pluginCommands {
             }
         },
         {
-            caption: "Add block ref ID's to selection and Copy them to clipboard", shortcut: "ABI", menu: true, icon: "blocks",
+            caption: "Add block ref ID's to selection and Copy them to clipboard", shortcut: "ABI", editModeOnly: true,  menu: true, icon: "blocks",
             command: async (): Promise<Array<string>> => transporter.addBlockRefsToSelection(this.plugin, true)
         },
         {
-            caption: "Copy embeded block reference for this line", shortcut: "CC", menu: true, icon: "blocks",
+            caption: "Copy embeded block reference for this line", shortcut: "CC", editModeOnly: true, menu: true, icon: "blocks",
             command: async (): Promise<string> => transporter.copyBlockRefToClipboard(this.plugin, true, false)
         },
         {
-            caption: "Copy embeded alias block reference", shortcut: "CA", menu: true, icon: "blocks",
+            caption: "Copy embeded alias block reference", shortcut: "CA", editModeOnly: true, menu: true, icon: "blocks",
             command: async (): Promise<string> => transporter.copyBlockRefToClipboard(this.plugin, true, true, this.plugin.settings.blockRefAliasIndicator)
         },
         {
-            caption: "Copy line/selection to another file", shortcut: "CLT", menu: true, icon: "right-arrow-with-tail",
+            caption: "Copy line/selection to another file", shortcut: "CLT", editModeOnly: true, menu: true, icon: "right-arrow-with-tail",
             command: async (): Promise<void> => transporter.copyOrPushLineOrSelectionToNewLocation(this.plugin, true)
         },
         {
-            caption: "Push line/selection to another file", shortcut: "PLT", menu: true, icon: "right-arrow-with-tail",
+            caption: "Push line/selection to another file", shortcut: "PLT", editModeOnly: true, menu: true, icon: "right-arrow-with-tail",
             command: async (): Promise<void> => transporter.copyOrPushLineOrSelectionToNewLocation(this.plugin, false)
         },
         {
-            caption: "Push line/selection to another file as Block Ref", shortcut: "PLB", menu: true, icon: "right-arrow-with-tail",
+            caption: "Push line/selection to another file as Block Ref", shortcut: "PLB", editModeOnly: true, menu: true, icon: "right-arrow-with-tail",
             command: async (): Promise<void> => transporter.pushBlockReferenceToAnotherFile(this.plugin)
         },
         {
-            caption: "Copy line(s) from another file", shortcut: "CLF", menu: true, icon: "left-arrow-with-tail",
+            caption: "Copy line(s) from another file", shortcut: "CLF", editModeOnly: true, menu: true, icon: "left-arrow-with-tail",
             command: async (): Promise<void> => transporter.copyOrPulLineOrSelectionFromAnotherLocation(this.plugin, true)
         },
         {
-            caption: "Pull line(s) from another file", shortcut: "LLF", menu: true, icon: "left-arrow-with-tail",
+            caption: "Pull line(s) from another file", shortcut: "LLF", editModeOnly: true, menu: true, icon: "left-arrow-with-tail",
             command: async (): Promise<void> => transporter.copyOrPulLineOrSelectionFromAnotherLocation(this.plugin, false)
         },
         {
-            caption: "Pull line(s) from another file as block", shortcut: "LLB", menu: true, icon: "left-arrow-with-tail",
+            caption: "Pull line(s) from another file as block", shortcut: "LLB", editModeOnly: true, menu: true, icon: "left-arrow-with-tail",
             command: async (): Promise<void> => transporter.pullBlockReferenceFromAnotherFile(this.plugin)
         },
     ];
@@ -101,19 +102,19 @@ export default class pluginCommands {
     // list of all commands available in Command  Pallet format
     async masterControlProgram(): Promise<void> { // Yes this is a reference to Tron https://www.imdb.com/title/tt0084827/
         const currentView = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
-        if (!currentView || currentView.getMode() !== "source") {
-            new Notice("No document in edit mode");
-            return;
-        }
-                const gfs = new genericFuzzySuggester(this.plugin);
+        let editMode = true;
+        if (!currentView || currentView.getMode() !== "source") editMode = false;
+
+        const gfs = new genericFuzzySuggester(this.plugin);
         const cpCommands: Array<suggesterItem> = [];
         for (const cmd of this.commands)
-            cpCommands.push({ display: cmd.caption, info: cmd.command });
+            if(cmd.editModeOnly === false || ( editMode && cmd.editModeOnly ) )
+                cpCommands.push({ display:  `${cmd.caption} (${cmd.shortcut})`, info: cmd.command });
         if (this.plugin.settings.enableDebugMode)
             cpCommands.push({ display: "Reload plugin (Debugging)", info: async (): Promise<void> => this.reloadPlugin() })
 
         gfs.setSuggesterData(cpCommands);
-        gfs.display(async (i: any, evt: MouseEvent | KeyboardEvent) => i.item.info(evt)); //call the callback
+        gfs.display(async (i: any, evt: MouseEvent | KeyboardEvent) => i.info(evt)); //call the callback
     }
 
     constructor(plugin: ThePlugin) {
@@ -122,7 +123,7 @@ export default class pluginCommands {
         this.plugin.addCommand({
             id: this.plugin.appID + '-combinedCommands', name: 'All Commands List',
             icon: "TextTransporter",
-            editorCallback: async () => {
+            callback: async () => {
                 await this.masterControlProgram();
             }
         });
@@ -158,12 +159,21 @@ export default class pluginCommands {
         );
 
         for (const [key, value] of Object.entries(this.commands)) {
-            this.plugin.addCommand({
-                id: this.plugin.appID + "-" + key.toString(),
-                icon: value.icon,
-                name: `${value.caption} (${value.shortcut})`,
-                editorCallback: value.command
-            });
+            if(value.editModeOnly) {
+                this.plugin.addCommand({
+                    id: this.plugin.appID + "-" + key.toString(),
+                    icon: value.icon,
+                    name: `${value.caption} (${value.shortcut})`,
+                    editorCallback: value.command
+                });
+            } else {
+                this.plugin.addCommand({
+                    id: this.plugin.appID + "-" + key.toString(),
+                    icon: value.icon,
+                    name: `${value.caption} (${value.shortcut})`,
+                    callback: value.command
+                });
+            }
         }
     }
 }
