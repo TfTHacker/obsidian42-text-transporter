@@ -4,6 +4,7 @@ import * as transporter from "../utils/transporterFunctions"
 import * as selectionTools from "../utils/selectionFunctions";
 import { Notice, MarkdownView } from "obsidian";
 import quickCaptureModal from "./quickCapture";
+import { AddBookmarkFromCurrentView, openBookmark, removeBookmark } from "../utils/bookmarks";
 
 export default class pluginCommands {
     plugin: ThePlugin;
@@ -87,6 +88,18 @@ export default class pluginCommands {
         {
             caption: "Pull line(s) from another file as block", shortcut: "LLB", editModeOnly: true, menu: true, icon: "left-arrow-with-tail",
             command: async (): Promise<void> => transporter.pullBlockReferenceFromAnotherFile(this.plugin)
+        },
+        {
+            caption: "Open a bookmarked file", shortcut: "BO", editModeOnly: false, menu: false, icon: "go-to-file",
+            command: async (): Promise<void> => await openBookmark(this.plugin)
+        },
+        {
+            caption: "Add a New Bookmark from this file", shortcut: "BA", editModeOnly: true, menu: true, icon: "go-to-file",
+            command: async (): Promise<void> => AddBookmarkFromCurrentView(this.plugin)
+        },
+        {
+            caption: "Remove a Bookmark", shortcut: "BR", editModeOnly: true, menu: true, icon: "go-to-file",
+            command: async (): Promise<void> => removeBookmark(this.plugin)
         },
     ];
 

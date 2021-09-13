@@ -88,7 +88,7 @@ export class SettingsTab extends PluginSettingTab {
 
 		new Setting(containerEl)
 			.setName('Bookmarks')
-			.setDesc(`Predefined destinations that appear at the top of the file selector. 
+			.setDesc(`Predefined destinations within files that appear at the top of the file selector. 
 						Each line represents one bookmark. The line starts with the path to the file (ex: directory1/subdirectory/filename.md) 
 						If just the file path is provided, the file contents will be shown for insertion.
 						If after the file name there is a semicolon followed by either: TOP BOTTOM or text to find in the document as an insertion point. Example:\n
