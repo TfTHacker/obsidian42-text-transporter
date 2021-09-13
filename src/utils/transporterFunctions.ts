@@ -130,7 +130,7 @@ async function copyOrPushLineOrSelectionToNewLocation(plugin: ThePlugin, copySel
             else
                 ctx.editor.replaceSelection(""); //replace whatever is the  selection
         }
-        if (evtFileSelected.ctrlKey || evtFirstLine.ctrlKey) {
+        if (evtFileSelected.ctrlKey || evtFileSelected.metaKey || evtFirstLine.ctrlKey || evtFirstLine.metaKey )  {
             const linesSelected = selectedText.split("\n").length;
             const lineCount = linesSelected > 1 ? linesSelected-1 : 0;
             openFileInObsidian(plugin, targetFileName, lineNumber + 1, lineCount)

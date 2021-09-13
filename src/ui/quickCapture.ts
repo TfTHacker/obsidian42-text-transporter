@@ -1,4 +1,4 @@
-import { Modal, Setting } from "obsidian";
+import { Modal, Notice, Platform, Setting } from "obsidian";
 import ThePlugin from "../main";
 import * as transporter from "../utils/transporterFunctions";
 
@@ -26,8 +26,13 @@ export default class quickCaptureModal extends Modal {
             new Setting(formEl)
                 .addTextArea((textEl) => {
                     textEl.onChange(value => qcInput = value);
-                    textEl.inputEl.rows = 5;
-                    textEl.inputEl.cols = 80;
+                    textEl.inputEl.rows = 6;
+                    if(Platform.isIosApp)
+                        textEl.inputEl.style.width="100%";
+                    else if(Platform.isDesktopApp) {
+                        textEl.inputEl.rows = 10;
+                        textEl.inputEl.cols = 100;
+                    }
                     textEl.inputEl.addEventListener("keydown", async (e: KeyboardEvent) => {
                         if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
                             e.preventDefault();
@@ -40,7 +45,10 @@ export default class quickCaptureModal extends Modal {
             formEl.createDiv("modal-button-container", (buttonContainerEl) => {
                 buttonContainerEl
                     .createEl("button", { attr: { type: "submit" }, cls: "mod-cta", text: "Capture" })
-                    .addEventListener("click", async () => await this.submitForm(qcInput));
+                    .addEventListener("click", async (e) => {
+                        e.preventDefault();
+                        await this.submitForm(qcInput)}
+                    );
             });
         });
     }

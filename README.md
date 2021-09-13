@@ -29,7 +29,7 @@ Check out this quick video to see what it is all about:
 *  Pull line(s) from another file
 *  Pull line(s) from another file as block references
 *  Modifier keys in the file suggester
-  + Press CTRL when clicking on an item and when the transport command is performed, the target file will be opened 
+  + Press Ctrl (or Meta key) when clicking on an item and when the transport command is performed, the target file will be opened 
   + Press Shift when clicking on a bookmark will continue the suggester process into selecting lines from the target file, but the first line will be based on the bookmark location 
 
 ## Selection commands
