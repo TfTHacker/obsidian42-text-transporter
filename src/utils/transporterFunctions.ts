@@ -11,12 +11,12 @@ function getContextObjects(): any {
     let editor: Editor = null;
     let currentLine = null;
     let currentLineEmpty: boolean = null;
-    if(this.app.workspace.activeLeaf.getViewState().type!=="empty") {
+    if (this.app.workspace.activeLeaf.getViewState().type !== "empty") {
         currentFile = currentView.file;
         cache = this.app.metadataCache.getFileCache(currentFile);
         editor = currentView.editor;
         currentLine = Number(editor.getCursor().line);
-        currentLineEmpty = editor.getLine(currentLine).trim().length === 0 ? true : false;    
+        currentLineEmpty = editor.getLine(currentLine).trim().length === 0 ? true : false;
     }
     return { currentView, currentFile, cache, editor, currentLine, currentLineEmpty };
 }
@@ -106,7 +106,7 @@ async function addBlockRefsToSelection(plugin: ThePlugin, copyToClipbard: boolea
 // copySelection = true for copy, false for move
 // defaultSelectionText  (use this function to push text, without changes to local editor)
 async function copyOrPushLineOrSelectionToNewLocation(plugin: ThePlugin, copySelection: boolean, defaultSelectionText = ""): Promise<void> {
-    const ctx = defaultSelectionText==="" ? getContextObjects() : null;
+    const ctx = defaultSelectionText === "" ? getContextObjects() : null;
     let selectedText = defaultSelectionText === "" ? ctx.editor.getSelection() : defaultSelectionText;
     if (selectedText === "") selectedText = ctx.editor.getLine(ctx.currentLine); //get text from current line
     await displayFileLineSuggester(plugin, false, true, false, (targetFileName, fileContentsArray, lineNumber, endLineNumber, evtFileSelected, evtFirstLine) => {
@@ -128,9 +128,9 @@ async function copyOrPushLineOrSelectionToNewLocation(plugin: ThePlugin, copySel
             else
                 ctx.editor.replaceSelection(""); //replace whatever is the  selection
         }
-        if (evtFileSelected && (evtFileSelected.ctrlKey || evtFileSelected.metaKey || evtFirstLine.ctrlKey || evtFirstLine.metaKey) )  {
+        if ((evtFileSelected && (evtFileSelected.ctrlKey || evtFileSelected.metaKey)) || (evtFirstLine && (evtFirstLine.ctrlKey || evtFirstLine.metaKey))) {
             const linesSelected = selectedText.split("\n").length;
-            const lineCount = linesSelected > 1 ? linesSelected-1 : 0;
+            const lineCount = linesSelected > 1 ? linesSelected - 1 : 0;
             openFileInObsidian(plugin, targetFileName, lineNumber + 1, lineCount)
         }
     });
@@ -157,9 +157,9 @@ async function pushBlockReferenceToAnotherFile(plugin: ThePlugin): Promise<void>
                 newContents += line.display + "\n";
             newContents = newContents.substring(0, newContents.length - 1);
             plugin.app.vault.adapter.write(targetFileName, newContents);
-            if (evtFileSelected.ctrlKey || evtFirstLine.ctrlKey) {
+            if ((evtFileSelected && (evtFileSelected.ctrlKey || evtFileSelected.metaKey)) || (evtFirstLine && (evtFirstLine.ctrlKey || evtFirstLine.metaKey))) {
                 openFileInObsidian(plugin, targetFileName, startLine + 1)
-            }            
+            }
         }
     });
 } //pushBlockReferenceToAnotherFile
@@ -183,9 +183,9 @@ async function copyOrPulLineOrSelectionFromAnotherLocation(plugin: ThePlugin, co
                 newContents += line.display + "\n";
             newContents = newContents.substring(0, newContents.length - 1);
             await plugin.app.vault.adapter.write(targetFileName, newContents);
-            if(evtFileSelected.ctrlKey || evtFirstLine.ctrlKey || evetLastLine.ctrlKey) await openFileInObsidian(plugin, targetFileName, startLine);
+            if (evtFileSelected.ctrlKey || evtFirstLine.ctrlKey || evetLastLine.ctrlKey) await openFileInObsidian(plugin, targetFileName, startLine);
         } else
-            if(evtFileSelected.ctrlKey || evtFirstLine.ctrlKey || evetLastLine.ctrlKey) await openFileInObsidian(plugin, targetFileName, startLine, endLine-startLine);
+            if (evtFileSelected.ctrlKey || evtFirstLine.ctrlKey || evetLastLine.ctrlKey) await openFileInObsidian(plugin, targetFileName, startLine, endLine - startLine);
     });
 } //copyOrPulLineOrSelectionFromAnotherLocation
 
@@ -240,8 +240,8 @@ async function pullBlockReferenceFromAnotherFile(plugin: ThePlugin): Promise<voi
             ctx.editor.replaceSelection(blockRefTextToInsert);
         }
         if (evtFileSelected.ctrlKey || evtFirstLine.ctrlKey || evetLastLine.ctrlKey) {
-            openFileInObsidian(plugin, targetFileName, startLine, endLine-startLine);
-        }            
+            openFileInObsidian(plugin, targetFileName, startLine, endLine - startLine);
+        }
     });
 } //pullBlockReferenceFromAnotherFile
 
