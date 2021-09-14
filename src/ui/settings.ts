@@ -59,8 +59,7 @@ export class SettingsTab extends PluginSettingTab {
 					})
 			);
 
-
-		containerEl.createEl("h2", { text: "Bookmarks" });
+			containerEl.createEl("h2", { text: "Bookmarks" })
 
 		new Setting(containerEl)
 			.setName('Bookmarks')
@@ -69,8 +68,8 @@ export class SettingsTab extends PluginSettingTab {
 						If just the file path is provided, the file contents will be shown for insertion.
 						If after the file name there is a semicolon followed by either: TOP BOTTOM or text to find in the document as an insertion point. Example:\n
 						directory1/subdirectory/filename1.md;TOP  directory1/subdirectory/filename2.md;BOTTOM  directory1/subdirectory/filename3.md;# Inbox
-						Optionally DNPTODAY can be used in the place of a file name to default to today's Daily Notes Page
-						`)	
+						Optionally DNPTODAY can be used in the place of a file name to default to today's Daily Notes Page.
+						`)
 			.addTextArea((textEl) => {
 				textEl
 					.setPlaceholder(" directory1/subdirectory/filename1.md;\n directory1/subdirectory/filename2.md;TOP\n directory1/subdirectory/filename3.md;BOTTOM\n directory1/subdirectory/filename4.md;# Inbox")
@@ -84,10 +83,18 @@ export class SettingsTab extends PluginSettingTab {
 					textEl.inputEl.style.width="100%";
 				else if(Platform.isDesktopApp) {
 					textEl.inputEl.rows = 15;
-					textEl.inputEl.style.minWidth="200px";
-					textEl.inputEl.style.minWidth="800px";
+					textEl.inputEl.cols = 120;
 				}
 			});
+
+			let desc = document.createDocumentFragment();
+			desc.append(
+				desc.createEl("a", {
+					href: "https://github.com/TfTHacker/obsidian42-text-transporter/blob/main/README-Bookmarks.md",
+					text: "Additional documentation  for bookmarks."
+				}),
+			);
+			containerEl.createEl("div", { text: "" }).append(desc);
 
 
 		containerEl.createEl("h2", { text: "Context Menu Commands: Enable/Disable" });

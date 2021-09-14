@@ -1,10 +1,7 @@
 # Text Transporter - advanced text management for Obsidian
+Text Transporter is the Swiss Army Knife of text manipulation plugins for Obsidian that allows you to modify contents of files in your vault, even when the file is not visible. In addition Text Transporeter provides a number of convenient functions for quickly selecting lines, blocks and more, along with quickly creating block references.
 
-Text Transporter you'll know if you need it :-). If you are a text ninja! Keyboard lover!
-
-Text Transporter allows you to quickly move content around your vault, from one file to the next, without leaving the file you are working on.
-
-In addition, it makes it easy to work with block references in yours vault.
+Text Transporter will make you a text ninja!  Text Transporter is made with extra heart for Keyboard lovers!
 
 Check out this quick video to see what it is all about:
 
@@ -13,7 +10,6 @@ Check out this quick video to see what it is all about:
 </a>
 
 ## Block Reference Commands
-
 *  Add block ref ID's to selection and Copy them to clipboard
 *  Copy embeded block reference
 *  Copy embeded alias block reference
@@ -21,7 +17,6 @@ Check out this quick video to see what it is all about:
 *  Replace a link with its original text and alias (via context menu or CP All Commands)
 
 ## Transporter Commands - Copy, Push, Pull 
-
 *  Copy line/selection to another file
 *  Push line/selection to another file
 *  Push line/selection to another file as Block Ref
@@ -32,8 +27,9 @@ Check out this quick video to see what it is all about:
   + Press Ctrl (or Meta key) when clicking on an item and when the transport command is performed, the target file will be opened 
   + Press Shift when clicking on a bookmark will continue the suggester process into selecting lines from the target file, but the first line will be based on the bookmark location 
 
-## Selection commands
+Note: These commands appear in the context menu when you right mouse click on a line in a file that is being edited. These commands can be toggled off in settings.
 
+## Selection commands
 *  Select current line
 *  Select block - previous
 *  Select block - next
@@ -44,7 +40,6 @@ Check out this quick video to see what it is all about:
 * Opens a form where you can type in text and then quickly capture it to a file in your vault. The Quick Capture screen accepts enters for new lines. Ctrl+Enter will click the capture button.
 
 ## Boookmarks
-
 * Bookmkarks are shortcuts to files in your vault. You can have multiple bookmarks defined in settings.
 * See this page for more details: [Bookmarks help](README-Bookmarks.md)
 
