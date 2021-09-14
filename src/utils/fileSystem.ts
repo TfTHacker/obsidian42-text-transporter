@@ -19,12 +19,12 @@ const testFolderExclusion = (folder: string, exclusionFolders: Array<string>): b
 const getFiles = async (app: App, rootPath: string, returnType: fileSystemReturnType, responseArray: Array<suggesterItem>, exclusionFolders: Array<string>) => {
 
     if (returnType === fileSystemReturnType.filesOnly || returnType === fileSystemReturnType.filesAndFolders)
-        for (const file of await app.vault.getMarkdownFiles())
+        for (const file of app.vault.getMarkdownFiles())
             if (!testFolderExclusion(file.path, exclusionFolders))
                 responseArray.push({ display: file.path, info: file.path }); //add file to array
 
     if (returnType === fileSystemReturnType.foldersOnly || returnType === fileSystemReturnType.filesAndFolders) {
-        for (const folder of await (await app.vault.adapter.list(rootPath)).folders) {
+        for (const folder of (await app.vault.adapter.list(rootPath)).folders) {
             if (!folder.startsWith('.') && !testFolderExclusion(folder + '/', exclusionFolders))
                 if (returnType === fileSystemReturnType.foldersOnly || returnType === fileSystemReturnType.filesAndFolders)
                     responseArray.push({ display: folder + '/', info: '' }); //add file to array
@@ -64,9 +64,8 @@ export default class fileSystem {
     exclusionFolders: Array<string> = [];
     dnpLabel: string;
 
-    constructor(plugin: ThePlugin, dnpLabel: string) {
+    constructor(plugin: ThePlugin) {
         this.plugin = plugin;
-        this.dnpLabel = dnpLabel;
     }
 
     setExclusionFolders(exclusion: Array<string>): void {
@@ -83,8 +82,6 @@ export default class fileSystem {
         const results: Array<suggesterItem> = [];
         await getFiles(this.plugin.app, rootPath, fileSystemReturnType.filesOnly, results, this.exclusionFolders);
         await addLastOpenFiles(this.plugin.app, results);
-        if (this.plugin.settings.enableDNP)
-            results.unshift({ display: this.dnpLabel, info: this.dnpLabel });
         return results;
     }
 

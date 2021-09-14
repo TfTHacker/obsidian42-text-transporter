@@ -23,28 +23,30 @@ class fileCacheAnalyzer {
         this.cache = <CachedMetadata>plugin.app.metadataCache.getCache(fileFullPath)
         this.fileFullPath = fileFullPath;
 
-        for (const section of this.cache.sections) {
-            switch (section.type) {
-                case "heading":
-                    this.breakdownCacheItems(this.cache.headings, section, false);
-                    break;
-                case "list":
-                    this.breakdownCacheItems(this.cache.listItems, section, true);
-                    break;
-                default:
-                    this.details.push({
-                        index: 0,
-                        type: section.type,
-                        lineStart: section.position.start.line,
-                        lineEnd: section.position.end.line,
-                        position: section.position,
-                        blockId: section.id
-                    })
-                    break;
+        if(this.cache.sections) {
+            for (const section of this.cache.sections) {
+                switch (section.type) {
+                    case "heading":
+                        this.breakdownCacheItems(this.cache.headings, section, false);
+                        break;
+                    case "list":
+                        this.breakdownCacheItems(this.cache.listItems, section, true);
+                        break;
+                    default:
+                        this.details.push({
+                            index: 0,
+                            type: section.type,
+                            lineStart: section.position.start.line,
+                            lineEnd: section.position.end.line,
+                            position: section.position,
+                            blockId: section.id
+                        })
+                        break;
+                }
             }
+            for (const i in this.details)
+                this.details[i].index = Number(i);
         }
-        for (const i in this.details)
-            this.details[i].index = Number(i);
     }
 
     getBlockAtLine(line: number, defaultForward: boolean): cacheDetails {

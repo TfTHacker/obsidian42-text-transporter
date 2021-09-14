@@ -11,11 +11,10 @@ export default class ThePlugin extends Plugin {
 	ribbonIcon: HTMLElement;
 	fs: fileSystem;
 	commands: pluginCommands;
-	dnpHeaderForFileSelector = "--- Today's Daily Notes Page ---";
 
 	async onload(): Promise<void> {
 		console.log("loading " + this.appName);
-		this.fs = new fileSystem(this, this.dnpHeaderForFileSelector);
+		this.fs = new fileSystem(this);
 		this.commands = new pluginCommands(this)
 		await this.loadSettings();
 		addIcons();

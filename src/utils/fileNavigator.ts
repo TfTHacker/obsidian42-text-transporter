@@ -17,11 +17,12 @@ interface fileChooserCallback {
 async function createFileChooser(plugin: ThePlugin, excludeFileFromList?: string): Promise<genericFuzzySuggester> {
     const fileList: Array<suggesterItem> = await plugin.fs.getAllFiles("/");
     if(excludeFileFromList) ///don't include this file if needed
-        for (let i = 0; i < fileList.length; i++)
+        for (let i = 0; i < fileList.length; i++){
             if (fileList[i].info.localeCompare(excludeFileFromList, undefined, { sensitivity: 'base' }) === 0) {
                 fileList.splice(i, 1);
                 break;
             }
+        }
 
     // add bookmarks to suggester
     if (plugin.settings.bookmarks.trim().length > 0) {
@@ -74,9 +75,7 @@ async function displayFileLineSuggester(plugin: ThePlugin, returnEndPoint: boole
         let fileContentsStartingLine = 0;
         let targetFileName = fileSelected.info;
 
-        if (plugin.settings.enableDNP && targetFileName === plugin.dnpHeaderForFileSelector) {
-            targetFileName = getDnpForToday();
-        } else if (targetFileName.search(";") > 0) { // a bookmark was selected with a command. process callback
+        if (targetFileName.search(";") > 0) { // a bookmark was selected with a command. process callback
             let filePath = targetFileName.substring(0, targetFileName.search(";"));
             const command = targetFileName.substring(filePath.length + 1).toLocaleUpperCase().trim();
             if (filePath === "DNPTODAY") filePath = await getDnpForToday();

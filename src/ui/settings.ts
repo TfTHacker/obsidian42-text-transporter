@@ -3,7 +3,6 @@ import ThePlugin from '../main';
 
 export interface Settings {
 	enableRibbon: boolean,
-	enableDNP: boolean,
 	enableDebugMode: boolean,
 	blockRefAliasIndicator: string,
 	enableContextMenuCommands: boolean,
@@ -12,7 +11,6 @@ export interface Settings {
 
 export const DEFAULT_SETTINGS: Settings = {
 	enableRibbon: true,
-	enableDNP: true,
 	enableDebugMode: false,
 	blockRefAliasIndicator: "*",
 	enableContextMenuCommands: true,
@@ -58,18 +56,6 @@ export class SettingsTab extends PluginSettingTab {
 					await this.plugin.saveSettings();
 				});
 			});
-
-		new Setting(containerEl)
-			.setName('Daily Notes Page Support')
-			.setDesc('Toggle on and off support for quickly interacting with your DNP with various commands.')
-			.addToggle((cb: ToggleComponent) => {
-				cb.setValue(this.plugin.settings.enableDNP);
-				cb.onChange(async (value: boolean) => {
-					this.plugin.settings.enableDNP = value;
-					await this.plugin.saveSettings();
-				});
-			});
-
 
 		new Setting(containerEl)
 			.setName("Alias Placeholder")

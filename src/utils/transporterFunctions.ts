@@ -1,8 +1,8 @@
-import { customAlphabet } from 'nanoid';
 import { CachedMetadata, Editor, TFile, View, Notice, LinkCache, getLinkpath } from "obsidian";
 import ThePlugin from '../main';
 import { fileCacheAnalyzer, cacheDetails } from './fileCacheAnalyzer';
 import { displayFileLineSuggester, openFileInObsidian } from "./fileNavigator";
+import { generateBlockId } from "./blockId";
 
 function getContextObjects(): any {
     const currentView: View = this.app.workspace.activeLeaf.view;
@@ -20,8 +20,6 @@ function getContextObjects(): any {
     }
     return { currentView, currentFile, cache, editor, currentLine, currentLineEmpty };
 }
-
-const nanoid = customAlphabet('abcdefghijklmnopqrstuvwz', 6);
 
 function cleanupHeaderNameForBlockReference(header: string): string {
     return header.replaceAll("[", "").replaceAll("]", "").replaceAll("#", "").replaceAll("|", "");
@@ -49,7 +47,7 @@ async function copyBlockRefToClipboard(plugin: ThePlugin, copyToClipBoard = true
         else
             return block;
     } else if (currentBlock.type === "paragraph" || currentBlock.type === "list") {
-        const id = currentBlock.blockId ? currentBlock.blockId : nanoid();
+        const id = currentBlock.blockId ? currentBlock.blockId : generateBlockId();
         const block = `${blockPrefix}[[${ctx.currentFile.name}#^${id}${aliasText}]]`.split("\n").join("");
         if (!currentBlock.blockId)
             ctx.editor.replaceRange(` ^${id}`, { line: Number(currentBlock.position.end.line), ch: currentBlock.position.end.col }, { line: Number(currentBlock.position.end.line), ch: currentBlock.position.end.col });
@@ -76,7 +74,7 @@ async function addBlockRefsToSelection(plugin: ThePlugin, copyToClipbard: boolea
                 const section = f.details[sectionCounter];
                 if (selectedLineInEditor >= section.position.start.line && selectedLineInEditor <= section.position.end.line) {
                     if ((section.type === "paragraph" || section.type === "list") && !section.blockId) {
-                        const newId = nanoid();
+                        const newId = generateBlockId();
                         ctx.editor.replaceRange(` ^${newId}`, { line: Number(section.position.end.line), ch: section.position.end.col }, { line: Number(section.position.end.line), ch: section.position.end.col });
                         blockRefs.push("#^" + newId);
                         selectedLineInEditor = section.position.end.line;
@@ -130,7 +128,7 @@ async function copyOrPushLineOrSelectionToNewLocation(plugin: ThePlugin, copySel
             else
                 ctx.editor.replaceSelection(""); //replace whatever is the  selection
         }
-        if (evtFileSelected.ctrlKey || evtFileSelected.metaKey || evtFirstLine.ctrlKey || evtFirstLine.metaKey )  {
+        if (evtFileSelected && (evtFileSelected.ctrlKey || evtFileSelected.metaKey || evtFirstLine.ctrlKey || evtFirstLine.metaKey) )  {
             const linesSelected = selectedText.split("\n").length;
             const lineCount = linesSelected > 1 ? linesSelected-1 : 0;
             openFileInObsidian(plugin, targetFileName, lineNumber + 1, lineCount)
@@ -205,7 +203,7 @@ async function pullBlockReferenceFromAnotherFile(plugin: ThePlugin): Promise<voi
                 const section = f.details[sectionCounter];
                 if (lineNumber >= section.position.start.line && lineNumber <= section.position.end.line) {
                     if ((section.type === "paragraph" || section.type === "list") && !section.blockId) {
-                        const newId = nanoid();
+                        const newId = generateBlockId();
                         fileContents.splice(section.position.end.line, 1, fileContents[section.position.end.line] + " ^" + newId);
                         blockRefs.push("#^" + newId);
                         fileChanged = true;
