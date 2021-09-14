@@ -87,7 +87,7 @@ export class SettingsTab extends PluginSettingTab {
 				}
 			});
 
-			let desc = document.createDocumentFragment();
+			const desc = document.createDocumentFragment();
 			desc.append(
 				desc.createEl("a", {
 					href: "https://github.com/TfTHacker/obsidian42-text-transporter/blob/main/README-Bookmarks.md",

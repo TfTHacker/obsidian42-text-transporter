@@ -5,7 +5,6 @@ import * as selectionTools from "../utils/selectionFunctions";
 import { Notice, MarkdownView } from "obsidian";
 import quickCaptureModal from "./quickCapture";
 import { AddBookmarkFromCurrentView, openBookmark, removeBookmark } from "../utils/bookmarks";
-import { Console } from "console";
 
 export default class pluginCommands {
     plugin: ThePlugin;
@@ -103,7 +102,7 @@ export default class pluginCommands {
             command: async (): Promise<void> => AddBookmarkFromCurrentView(this.plugin)
         },
         {
-            caption: "Remove a Bookmark", shortcut: "BR", editModeOnly: true, isContextMenuItem: true, cmItemEnabled: true, icon: "go-to-file",
+            caption: "Remove a Bookmark", shortcut: "BR", editModeOnly: true, isContextMenuItem: false, cmItemEnabled: false, icon: "go-to-file",
             command: async (): Promise<void> => removeBookmark(this.plugin)
         },
     ];
@@ -147,9 +146,9 @@ export default class pluginCommands {
         });
 
         // load context menu settings from plugin settings
-        for (let i = 0; i < this.commands.length; i++) 
-            if(this.commands[i].cmItemEnabled===true && this.plugin.settings["cMenuEnabled-" + this.commands[i].shortcut] !== undefined ) 
-                this.commands[i].cmItemEnabled = this.plugin.settings["cMenuEnabled-" + this.commands[i].shortcut] 
+        for (let i = 0; i < this.commands.length; i++)
+            if (this.commands[i].cmItemEnabled === true && this.plugin.settings["cMenuEnabled-" + this.commands[i].shortcut] !== undefined)
+                this.commands[i].cmItemEnabled = this.plugin.settings["cMenuEnabled-" + this.commands[i].shortcut]
 
         this.plugin.registerEvent(
             this.plugin.app.workspace.on("editor-menu", (menu) => {
@@ -179,7 +178,7 @@ export default class pluginCommands {
             })
         );
 
-        for (const [key, value] of Object.entries(this.commands)) {
+        for (const value of Object.values(this.commands)) {
             if (value.editModeOnly) {
                 this.plugin.addCommand({
                     id: this.plugin.appID + "-" + value.shortcut,

@@ -1,10 +1,12 @@
-import { Modal, Notice, Platform, Setting } from "obsidian";
+import { Modal, Platform, Setting } from "obsidian";
 import ThePlugin from "../main";
 import * as transporter from "../utils/transporterFunctions";
+import {SilentFileAndTagSuggester} from "../ui/silentFileAndTagSuggester";
 
 export default class quickCaptureModal extends Modal {
     plugin: ThePlugin;
-
+    suggester: SilentFileAndTagSuggester;
+   
     constructor(plugin: ThePlugin) {
         super(plugin.app);
         this.plugin = plugin;
@@ -27,9 +29,9 @@ export default class quickCaptureModal extends Modal {
                 .addTextArea((textEl) => {
                     textEl.onChange(value => qcInput = value);
                     textEl.inputEl.rows = 6;
-                    if(Platform.isIosApp)
-                        textEl.inputEl.style.width="100%";
-                    else if(Platform.isDesktopApp) {
+                    if (Platform.isIosApp)
+                        textEl.inputEl.style.width = "100%";
+                    else if (Platform.isDesktopApp) {
                         textEl.inputEl.rows = 10;
                         textEl.inputEl.cols = 100;
                     }
@@ -40,14 +42,17 @@ export default class quickCaptureModal extends Modal {
                         }
                     });
                     window.setTimeout(() => textEl.inputEl.focus(), 10);
+                    this.suggester = new SilentFileAndTagSuggester(this.plugin.app, textEl.inputEl);
                 })
+
 
             formEl.createDiv("modal-button-container", (buttonContainerEl) => {
                 buttonContainerEl
                     .createEl("button", { attr: { type: "submit" }, cls: "mod-cta", text: "Capture" })
                     .addEventListener("click", async (e) => {
                         e.preventDefault();
-                        await this.submitForm(qcInput)}
+                        await this.submitForm(qcInput)
+                    }
                     );
             });
         });
