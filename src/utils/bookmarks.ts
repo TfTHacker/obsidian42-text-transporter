@@ -14,13 +14,23 @@ async function AddBookmarkFromCurrentView(plugin: ThePlugin): Promise<void> {
     const locationChooser = new genericFuzzySuggester(this);
     const data = new Array<suggesterItem>();
     data.push({ display: "TOP: Bookmark the top of the file ", info: "TOP" });
+    data.push({ display: "TOP: Bookmark the top of the file and mark as a context menu location", info: "TOP*" });
     data.push({ display: "BOTTOM: Bookmark the bottom of the file ", info: "BOTTOM" });
-    if (currentLineText.length > 0)
+    data.push({ display: "BOTTOM: Bookmark the bottom of the file and mark as a context menu location", info: "BOTTOM*" });
+    if (currentLineText.length > 0) {
         data.push({ display: `Location: of selected text "${currentLineText}"`, info: currentLineText });
+        data.push({ display: `Location: of selected text and mark as a context menu location" ${currentLineText}"`, info: currentLineText + "*" });
+    }
     locationChooser.setSuggesterData(data);
     locationChooser.display((location: suggesterItem) => {
+        let command = "";
+        let prefix = "";
+        if(location.info.indexOf("*")>0) {
+            command = location.info.replace("*", "");
+            prefix = "*";
+        }
         if (location) {
-            const newBookmark = currentView.file.path + ";" + location.info;
+            const newBookmark = prefix + currentView.file.path + ";" + command;
             if (plugin.settings.bookmarks.split("\n").find(b => b === newBookmark))
                 new Notice(`The bookmark: ${newBookmark} already exists.`)
             else {

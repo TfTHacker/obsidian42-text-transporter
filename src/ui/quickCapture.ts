@@ -1,12 +1,12 @@
 import { Modal, Platform, Setting } from "obsidian";
 import ThePlugin from "../main";
 import * as transporter from "../utils/transporterFunctions";
-import {SilentFileAndTagSuggester} from "../ui/silentFileAndTagSuggester";
+import { SilentFileAndTagSuggester } from "../ui/silentFileAndTagSuggester";
 
 export default class quickCaptureModal extends Modal {
     plugin: ThePlugin;
     suggester: SilentFileAndTagSuggester;
-   
+
     constructor(plugin: ThePlugin) {
         super(plugin.app);
         this.plugin = plugin;
@@ -15,7 +15,7 @@ export default class quickCaptureModal extends Modal {
     async submitForm(qcText: string): Promise<void> {
         if (qcText.trim().length === 0)
             return;  //no text do nothing
-        transporter.copyOrPushLineOrSelectionToNewLocation(this.plugin, true, qcText);
+        transporter.copyOrPushLineOrSelectionToNewLocationWithFileLineSuggester(this.plugin, true, qcText);
         this.close();
     }
 
@@ -45,15 +45,13 @@ export default class quickCaptureModal extends Modal {
                     this.suggester = new SilentFileAndTagSuggester(this.plugin.app, textEl.inputEl);
                 })
 
-
             formEl.createDiv("modal-button-container", (buttonContainerEl) => {
                 buttonContainerEl
                     .createEl("button", { attr: { type: "submit" }, cls: "mod-cta", text: "Capture" })
                     .addEventListener("click", async (e) => {
                         e.preventDefault();
                         await this.submitForm(qcInput)
-                    }
-                    );
+                    });
             });
         });
     }

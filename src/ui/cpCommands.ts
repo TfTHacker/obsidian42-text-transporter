@@ -38,7 +38,7 @@ export default class pluginCommands {
             command: async (): Promise<void> => selectionTools.selectCurrentSection(this.plugin, false)
         },
         {
-            caption: "Replace link with text", shortcut: "ABI", editModeOnly: true, isContextMenuItem: false, cmItemEnabled: false, icon: "blocks",
+            caption: "Replace link with text", shortcut: "RLT", editModeOnly: true, isContextMenuItem: false, cmItemEnabled: false, icon: "blocks",
             command: async (): Promise<void> => {
                 const linkInfo = transporter.testIfCursorIsOnALink();
                 if (linkInfo)
@@ -48,7 +48,7 @@ export default class pluginCommands {
             }
         },
         {
-            caption: "Replace link with text & alias", shortcut: "ABI", editModeOnly: true, isContextMenuItem: false, cmItemEnabled: false, icon: "blocks",
+            caption: "Replace link with text & alias", shortcut: "RLA", editModeOnly: true, isContextMenuItem: false, cmItemEnabled: false, icon: "blocks",
             command: async (): Promise<void> => {
                 const linkInfo = transporter.testIfCursorIsOnALink();
                 if (linkInfo)
@@ -58,12 +58,8 @@ export default class pluginCommands {
             }
         },
         {
-            caption: "Add block ref ID's to selection and Copy them to clipboard", shortcut: "ABI", editModeOnly: true, isContextMenuItem: true, cmItemEnabled: true, icon: "blocks",
+            caption: "Copy embeded block reference(s) for this selection", shortcut: "CC", editModeOnly: true, isContextMenuItem: true, cmItemEnabled: true, icon: "blocks",
             command: async (): Promise<Array<string>> => transporter.addBlockRefsToSelection(this.plugin, true)
-        },
-        {
-            caption: "Copy embeded block reference for this line", shortcut: "CC", editModeOnly: true, isContextMenuItem: true, cmItemEnabled: true, icon: "blocks",
-            command: async (): Promise<string> => transporter.copyBlockRefToClipboard(this.plugin, true, false)
         },
         {
             caption: "Copy embeded alias block reference", shortcut: "CA", editModeOnly: true, isContextMenuItem: true, cmItemEnabled: true, icon: "blocks",
@@ -71,11 +67,11 @@ export default class pluginCommands {
         },
         {
             caption: "Copy line/selection to another file", shortcut: "CLT", editModeOnly: true, isContextMenuItem: true, cmItemEnabled: true, icon: "right-arrow-with-tail",
-            command: async (): Promise<void> => transporter.copyOrPushLineOrSelectionToNewLocation(this.plugin, true)
+            command: async (): Promise<void> => transporter.copyOrPushLineOrSelectionToNewLocationWithFileLineSuggester(this.plugin, true)
         },
         {
             caption: "Push line/selection to another file", shortcut: "PLT", editModeOnly: true, isContextMenuItem: true, cmItemEnabled: true, icon: "right-arrow-with-tail",
-            command: async (): Promise<void> => transporter.copyOrPushLineOrSelectionToNewLocation(this.plugin, false)
+            command: async (): Promise<void> => transporter.copyOrPushLineOrSelectionToNewLocationWithFileLineSuggester(this.plugin, false)
         },
         {
             caption: "Push line/selection to another file as Block Ref", shortcut: "PLB", editModeOnly: true, isContextMenuItem: true, cmItemEnabled: true, icon: "right-arrow-with-tail",
@@ -175,6 +171,24 @@ export default class pluginCommands {
                                 .setIcon(value.icon)
                                 .onClick(async () => { await value.command() });
                         });
+                //load bookmmarks in CM
+                for(const bookmark of plugin.settings.bookmarks.split("\n")) {
+                    if(bookmark.substr(0,1)==="*") {
+                        const bookmarkText = (bookmark.length>=40 ? bookmark.substr(0,40) + "..." : bookmark).replace("*","");
+                        menu.addItem(item => {
+                            item
+                                .setTitle("Copy to: " + bookmarkText)
+                                .setIcon("star-list")
+                                .onClick(async (e) => await transporter.copyOrPushLineOrSelectionToNewLocationUsingCurrentCursorLocationAndBoomark(plugin, true, bookmark, e))
+                        });
+                        menu.addItem(item => {
+                            item
+                            .setTitle("Push to")
+                                .setTitle("Push to: " + bookmarkText)
+                                .onClick(async (e) => await transporter.copyOrPushLineOrSelectionToNewLocationUsingCurrentCursorLocationAndBoomark(plugin, false, bookmark, e))
+                        });
+                    }
+                }
             })
         );
 

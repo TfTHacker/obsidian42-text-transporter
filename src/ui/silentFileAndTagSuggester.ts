@@ -13,11 +13,11 @@ enum TagOrFile {
 
 
 // This is not an accurate wikilink regex - but works for its intended purpose.
-const FILE_LINK_REGEX: RegExp = new RegExp(/\[\[([^\]]*)$/);
-const TAG_REGEX: RegExp = new RegExp(/#([^ ]*)$/);
+const FILE_LINK_REGEX = new RegExp(/\[\[([^\]]*)$/);
+const TAG_REGEX = new RegExp(/#([^ ]*)$/);
 
 export class SilentFileAndTagSuggester extends TextInputSuggest<string> {
-    private lastInput: string = "";
+    private lastInput  = "";
     private lastInputType: TagOrFile;
     private files: TFile[];
     private unresolvedLinkNames: string[];
@@ -70,7 +70,7 @@ export class SilentFileAndTagSuggester extends TextInputSuggest<string> {
         const cursorPosition: number = this.inputEl.selectionStart;
         const lastInputLength: number = this.lastInput.length;
         const currentInputValue: string = this.inputEl.value;
-        let insertedEndPosition: number = 0;
+        let insertedEndPosition = 0;
 
         if (this.lastInputType === TagOrFile.File) {
             const linkFile: TAbstractFile = this.app.vault.getAbstractFileByPath(item);

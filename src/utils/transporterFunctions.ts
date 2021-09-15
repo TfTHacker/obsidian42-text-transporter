@@ -1,10 +1,12 @@
 import { CachedMetadata, Editor, TFile, View, Notice, LinkCache, getLinkpath } from "obsidian";
 import ThePlugin from '../main';
 import { fileCacheAnalyzer, cacheDetails } from './fileCacheAnalyzer';
-import { displayFileLineSuggester, openFileInObsidian } from "./fileNavigator";
+import {  suggesterItem } from "../ui/genericFuzzySuggester";
+import { displayFileLineSuggester, openFileInObsidian, parseBookmarkForItsElements } from "./fileNavigator";
 import { generateBlockId } from "./blockId";
 
 function getContextObjects(): any {
+
     const currentView: View = this.app.workspace.activeLeaf.view;
     let cache: CachedMetadata = null;
     let currentFile: TFile = null;
@@ -12,8 +14,10 @@ function getContextObjects(): any {
     let currentLine = null;
     let currentLineEmpty: boolean = null;
     if (this.app.workspace.activeLeaf.getViewState().type !== "empty") {
+        // @ts-ignore
         currentFile = currentView.file;
         cache = this.app.metadataCache.getFileCache(currentFile);
+        // @ts-ignore
         editor = currentView.editor;
         currentLine = Number(editor.getCursor().line);
         currentLineEmpty = editor.getLine(currentLine).trim().length === 0 ? true : false;
@@ -46,7 +50,7 @@ async function copyBlockRefToClipboard(plugin: ThePlugin, copyToClipBoard = true
             navigator.clipboard.writeText(block).then(text => text);
         else
             return block;
-    } else if (currentBlock.type === "paragraph" || currentBlock.type === "list") {
+    } else if (currentBlock.type === "paragraph" || currentBlock.type === "list" || currentBlock.type === "blockquote") {
         const id = currentBlock.blockId ? currentBlock.blockId : generateBlockId();
         const block = `${blockPrefix}[[${ctx.currentFile.name}#^${id}${aliasText}]]`.split("\n").join("");
         if (!currentBlock.blockId)
@@ -73,13 +77,13 @@ async function addBlockRefsToSelection(plugin: ThePlugin, copyToClipbard: boolea
             for (let sectionCounter = 0; sectionCounter < f.details.length; sectionCounter++) {
                 const section = f.details[sectionCounter];
                 if (selectedLineInEditor >= section.position.start.line && selectedLineInEditor <= section.position.end.line) {
-                    if ((section.type === "paragraph" || section.type === "list") && !section.blockId) {
+                    if ((section.type === "paragraph" || section.type === "list" || section.type === "blockquote" ) && !section.blockId) {
                         const newId = generateBlockId();
                         ctx.editor.replaceRange(` ^${newId}`, { line: Number(section.position.end.line), ch: section.position.end.col }, { line: Number(section.position.end.line), ch: section.position.end.col });
                         blockRefs.push("#^" + newId);
                         selectedLineInEditor = section.position.end.line;
                         break;
-                    } else if (section.type === "paragraph" || section.type === "list") {
+                    } else if (section.type === "paragraph" || section.type === "list" || section.type === "blockquote") {
                         blockRefs.push("#^" + section.blockId);
                         selectedLineInEditor = section.position.end.line;
                         break;
@@ -101,40 +105,65 @@ async function addBlockRefsToSelection(plugin: ThePlugin, copyToClipbard: boolea
     return blockRefs;
 } //addBlockRefsToSelection()
 
+async function copyOrPushLineOrSelectionToNewLocation(plugin: ThePlugin, copySelection: boolean, newText: string, targetFileName:string,  targetFileLineNumber:number, targetFileContentsArray: Array<suggesterItem>): Promise<void> {
+    if (targetFileLineNumber === -1) { //go to top of file, but test for YAML
+        const f = new fileCacheAnalyzer(plugin, targetFileName);
+        if (f.details.length > 0 && f.details[0].type === "yaml")
+            targetFileLineNumber = f.details[0].lineEnd;
+    }
+    targetFileContentsArray.splice(Number(targetFileLineNumber) + 1, 0, { display: newText, info: "" });
+    let newContents = "";
+    for (const line of targetFileContentsArray)
+        newContents += line.display + "\n";
+    newContents = newContents.substring(0, newContents.length - 1);
+    plugin.app.vault.adapter.write(targetFileName, newContents);
+    if (copySelection === false) {//this  is  a move, so delete the selection
+        const ctx = getContextObjects();
+        const textSelection = ctx.editor.getSelection();
+        if (textSelection === "" || ctx.editor.getLine(ctx.currentLine).length === textSelection.length)
+            ctx.editor.replaceRange("", { line: ctx.currentLine, ch: 0 }, { line: ctx.currentLine + 1, ch: 0 })
+        else
+            ctx.editor.replaceSelection(""); //replace whatever is the  selection
+    }
+} //copyOrPushLineOrSelectionToNewLocation
 
 // Copies or pushes (transfers) the current line or selection to another file
 // copySelection = true for copy, false for move
 // defaultSelectionText  (use this function to push text, without changes to local editor)
-async function copyOrPushLineOrSelectionToNewLocation(plugin: ThePlugin, copySelection: boolean, defaultSelectionText = ""): Promise<void> {
+async function copyOrPushLineOrSelectionToNewLocationWithFileLineSuggester(plugin: ThePlugin, copySelection: boolean, defaultSelectionText = ""): Promise<void> {
     const ctx = defaultSelectionText === "" ? getContextObjects() : null;
     let selectedText = defaultSelectionText === "" ? ctx.editor.getSelection() : defaultSelectionText;
     if (selectedText === "") selectedText = ctx.editor.getLine(ctx.currentLine); //get text from current line
-    await displayFileLineSuggester(plugin, false, true, false, (targetFileName, fileContentsArray, lineNumber, endLineNumber, evtFileSelected, evtFirstLine) => {
-        if (lineNumber === -1) { //go to top of file, but test for YAML
-            const f = new fileCacheAnalyzer(plugin, targetFileName);
-            if (f.details.length > 0 && f.details[0].type === "yaml")
-                lineNumber = f.details[0].lineEnd;
-        }
-        fileContentsArray.splice(Number(lineNumber) + 1, 0, { display: selectedText, info: "" });
-        let newContents = "";
-        for (const line of fileContentsArray)
-            newContents += line.display + "\n";
-        newContents = newContents.substring(0, newContents.length - 1);
-        plugin.app.vault.adapter.write(targetFileName, newContents);
-        if (copySelection === false) {//this  is  a move, so delete the selection
-            const textSelection = ctx.editor.getSelection();
-            if (textSelection === "" || ctx.editor.getLine(ctx.currentLine).length === textSelection.length)
-                ctx.editor.replaceRange("", { line: ctx.currentLine, ch: 0 }, { line: ctx.currentLine + 1, ch: 0 })
-            else
-                ctx.editor.replaceSelection(""); //replace whatever is the  selection
-        }
+    await displayFileLineSuggester(plugin, false, true, false, async (targetFileName, fileContentsArray, lineNumber, endLineNumber, evtFileSelected, evtFirstLine) => {
+        await copyOrPushLineOrSelectionToNewLocation(plugin, copySelection, selectedText, targetFileName, lineNumber, fileContentsArray);
         if ((evtFileSelected && (evtFileSelected.ctrlKey || evtFileSelected.metaKey)) || (evtFirstLine && (evtFirstLine.ctrlKey || evtFirstLine.metaKey))) {
             const linesSelected = selectedText.split("\n").length;
             const lineCount = linesSelected > 1 ? linesSelected - 1 : 0;
             openFileInObsidian(plugin, targetFileName, lineNumber + 1, lineCount)
         }
     });
-} //copyOrPushLineOrSelectionToNewLocation
+} //copyOrPushLineOrSelectionToNewLocationWithFileLineSuggester
+
+// this is primarily used by the context menu for doing copy/push actions
+async function copyOrPushLineOrSelectionToNewLocationUsingCurrentCursorLocationAndBoomark(plugin: ThePlugin, copySelection: boolean, bookmarkText: string, evt?: MouseEvent | KeyboardEvent): Promise<void> {
+    const bookmarkInfo = await parseBookmarkForItsElements(plugin, bookmarkText, false);
+    if(bookmarkInfo.errorNumber===1)
+        new Notice("Location in the bookmark does not exist.");
+    else if(bookmarkInfo.errorNumber===2)
+        new Notice("File as defined in the bookmark does not exist.");
+    else {
+        const ctx = getContextObjects();
+        let textSelection = ctx.editor.getSelection();
+        if (textSelection === "") textSelection = ctx.editor.getLine(ctx.currentLine); //get text from current line
+        copyOrPushLineOrSelectionToNewLocation(plugin, copySelection, textSelection, bookmarkInfo.fileName,bookmarkInfo.fileLineNumber,bookmarkInfo.fileBookmarkContentsArray);
+        if (evt && (evt.ctrlKey || evt.metaKey)) {
+            const linesSelected = textSelection.split("\n").length;
+            const lineCount = linesSelected > 1 ? linesSelected - 1 : 0;
+            openFileInObsidian(plugin, bookmarkInfo.fileName, bookmarkInfo.fileLineNumber + 1, lineCount)
+        }
+        
+    }
+}
 
 //copy a block reference of the current line to another file
 async function pushBlockReferenceToAnotherFile(plugin: ThePlugin): Promise<void> {
@@ -167,6 +196,7 @@ async function pushBlockReferenceToAnotherFile(plugin: ThePlugin): Promise<void>
 // Pull (move) a line or lines from another file
 async function copyOrPulLineOrSelectionFromAnotherLocation(plugin: ThePlugin, copySelection: boolean): Promise<void> {
     await displayFileLineSuggester(plugin, true, false, true, async (targetFileName, fileContentsArray, startLine, endLine, evtFileSelected, evtFirstLine, evetLastLine) => {
+        const ctrlKey = (evtFileSelected && evtFileSelected.ctrlKey) || (evtFirstLine && evtFirstLine.ctrlKey) || (evetLastLine && evetLastLine.ctrlKey);
         startLine = startLine === -1 ? startLine = 0 : startLine;
         endLine = endLine === -1 ? endLine = 0 : endLine;
         let stringToInsertIntoSelection = "";
@@ -183,9 +213,9 @@ async function copyOrPulLineOrSelectionFromAnotherLocation(plugin: ThePlugin, co
                 newContents += line.display + "\n";
             newContents = newContents.substring(0, newContents.length - 1);
             await plugin.app.vault.adapter.write(targetFileName, newContents);
-            if (evtFileSelected.ctrlKey || evtFirstLine.ctrlKey || evetLastLine.ctrlKey) await openFileInObsidian(plugin, targetFileName, startLine);
+            if (ctrlKey) await openFileInObsidian(plugin, targetFileName, startLine);
         } else
-            if (evtFileSelected.ctrlKey || evtFirstLine.ctrlKey || evetLastLine.ctrlKey) await openFileInObsidian(plugin, targetFileName, startLine, endLine - startLine);
+            if (ctrlKey) await openFileInObsidian(plugin, targetFileName, startLine, endLine - startLine);
     });
 } //copyOrPulLineOrSelectionFromAnotherLocation
 
@@ -280,7 +310,8 @@ async function copyBlockReferenceToCurrentCusorLocation(plugin: ThePlugin, linkI
 
 export {
     getContextObjects, copyBlockRefToClipboard,
-    copyOrPushLineOrSelectionToNewLocation,
+    copyOrPushLineOrSelectionToNewLocationWithFileLineSuggester, copyOrPushLineOrSelectionToNewLocation,
+    copyOrPushLineOrSelectionToNewLocationUsingCurrentCursorLocationAndBoomark,
     copyOrPulLineOrSelectionFromAnotherLocation, addBlockRefsToSelection,
     pushBlockReferenceToAnotherFile, pullBlockReferenceFromAnotherFile,
     testIfCursorIsOnALink, copyBlockReferenceToCurrentCusorLocation,
