@@ -4,9 +4,20 @@ import { fileCacheAnalyzer, cacheDetails } from './fileCacheAnalyzer';
 import { getContextObjects } from "./transporterFunctions";
 
 // Select the current line in the editor of activeLeaf
-function selectCurrentLine(): void {
+function selectCurrentLine(plugin: ThePlugin): void {
     const ctx = getContextObjects();
-    ctx.editor.setSelection({ line: ctx.currentLine, ch: 0 }, { line: ctx.currentLine, ch: ctx.editor.getLine(ctx.editor.getCursor().line).length });
+    const selections = ctx.editor.listSelections();
+    if(selections.length===1) {
+        const sel: EditorSelection = selections[0];
+        const lineLength = ctx.editor.getLine(ctx.editor.getCursor().line).length;
+        if( (sel.anchor.line === sel.head.line) && (sel.anchor.ch===lineLength || sel.head.ch===lineLength) && ctx.editor.getSelection().length>0 ) {
+            const f = new fileCacheAnalyzer(plugin, ctx.currentFile.path);
+            const block = f.getBlockAtLine(ctx.currentLine, true);
+            ctx.editor.setSelection( { line: block.lineStart, ch: 0}, { line: block.lineEnd, ch: block.position.end.col} );
+        } else if (sel.anchor.line === sel.head.line)
+            ctx.editor.setSelection({ line: ctx.currentLine, ch: 0 }, { line: ctx.currentLine, ch: ctx.editor.getLine(ctx.editor.getCursor().line).length });
+
+    }
 }
 
 // select the next block  or previous block.

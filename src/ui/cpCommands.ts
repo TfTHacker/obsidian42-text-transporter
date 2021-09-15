@@ -18,8 +18,8 @@ export default class pluginCommands {
             command: async (): Promise<void> => (new quickCaptureModal(this.plugin)).open()
         },
         {
-            caption: "Select current line", shortcut: "SL", editModeOnly: true, isContextMenuItem: false, cmItemEnabled: false, icon: "highlight-glyph",
-            command: async (): Promise<void> => selectionTools.selectCurrentLine()
+            caption: "Select current line/expand to block", shortcut: "SL", editModeOnly: true, isContextMenuItem: false, cmItemEnabled: false, icon: "highlight-glyph",
+            command: async (): Promise<void> => selectionTools.selectCurrentLine(this.plugin)
         },
         {
             caption: "Select block - previous", shortcut: "BP", editModeOnly: true, isContextMenuItem: false, cmItemEnabled: false, icon: "highlight-glyph",
@@ -30,11 +30,11 @@ export default class pluginCommands {
             command: async (): Promise<void> => selectionTools.selectAdjacentBlock(this.plugin, true)
         },
         {
-            caption: "Select current line and expand up into previous block", shortcut: "SP", editModeOnly: true, isContextMenuItem: false, cmItemEnabled: false, icon: "highlight-glyph",
+            caption: "Select current line/expand up into previous block", shortcut: "SP", editModeOnly: true, isContextMenuItem: false, cmItemEnabled: false, icon: "highlight-glyph",
             command: async (): Promise<void> => selectionTools.selectCurrentSection(this.plugin, true)
         },
         {
-            caption: "Select current line and expand down into next block", shortcut: "SN", editModeOnly: true, isContextMenuItem: false, cmItemEnabled: false, icon: "highlight-glyph",
+            caption: "Select current line/expand down into next block", shortcut: "SN", editModeOnly: true, isContextMenuItem: false, cmItemEnabled: false, icon: "highlight-glyph",
             command: async (): Promise<void> => selectionTools.selectCurrentSection(this.plugin, false)
         },
         {
@@ -58,11 +58,11 @@ export default class pluginCommands {
             }
         },
         {
-            caption: "Copy embeded block reference(s) for this selection", shortcut: "CC", editModeOnly: true, isContextMenuItem: true, cmItemEnabled: true, icon: "blocks",
+            caption: "Copy block embeds from this selection", shortcut: "CC", editModeOnly: true, isContextMenuItem: true, cmItemEnabled: true, icon: "blocks",
             command: async (): Promise<Array<string>> => transporter.addBlockRefsToSelection(this.plugin, true)
         },
         {
-            caption: "Copy embeded alias block reference", shortcut: "CA", editModeOnly: true, isContextMenuItem: true, cmItemEnabled: true, icon: "blocks",
+            caption: "Copy block embed as an alias", shortcut: "CA", editModeOnly: true, isContextMenuItem: true, cmItemEnabled: true, icon: "blocks",
             command: async (): Promise<string> => transporter.copyBlockRefToClipboard(this.plugin, true, true, this.plugin.settings.blockRefAliasIndicator)
         },
         {
@@ -74,7 +74,7 @@ export default class pluginCommands {
             command: async (): Promise<void> => transporter.copyOrPushLineOrSelectionToNewLocationWithFileLineSuggester(this.plugin, false)
         },
         {
-            caption: "Push line/selection to another file as Block Ref", shortcut: "PLB", editModeOnly: true, isContextMenuItem: true, cmItemEnabled: true, icon: "right-arrow-with-tail",
+            caption: "Push line/selection to another file as a block embed", shortcut: "PLB", editModeOnly: true, isContextMenuItem: true, cmItemEnabled: true, icon: "right-arrow-with-tail",
             command: async (): Promise<void> => transporter.pushBlockReferenceToAnotherFile(this.plugin)
         },
         {
@@ -86,7 +86,7 @@ export default class pluginCommands {
             command: async (): Promise<void> => transporter.copyOrPulLineOrSelectionFromAnotherLocation(this.plugin, false)
         },
         {
-            caption: "Pull line(s) from another file as block", shortcut: "LLB", editModeOnly: true, isContextMenuItem: true, cmItemEnabled: true, icon: "left-arrow-with-tail",
+            caption: "Pull Line(s) from another file as block embeds", shortcut: "LLB", editModeOnly: true, isContextMenuItem: true, cmItemEnabled: true, icon: "left-arrow-with-tail",
             command: async (): Promise<void> => transporter.pullBlockReferenceFromAnotherFile(this.plugin)
         },
         {

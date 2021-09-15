@@ -1,7 +1,7 @@
 # Text Transporter - advanced text management for Obsidian
-Text Transporter is the Swiss Army Knife of text manipulation plugins for Obsidian that allows you to modify contents of files in your vault, even when the file is not visible. In addition Text Transporeter provides a number of convenient functions for quickly selecting lines, blocks and more, along with quickly creating block references.
+Text Transporter is the Swiss Army Knife of text manipulation plugins for Obsidian that allows you to modify contents of files in your vault, even when the file is not visible. In addition Text Transporter provides a number of convenient functions for quickly selecting lines, blocks and more, along with quickly creating block references.
 
-Text Transporter will make you a text ninja!  Text Transporter is made with extra heart for Keyboard lovers!
+Text Transporter will make you a text ninja!  Text Transporter is made with extra heart for keyboard lovers!
 
 Check out this quick video to see what it is all about:
 
@@ -10,9 +10,8 @@ Check out this quick video to see what it is all about:
 </a>
 
 ## Block Reference Commands
-*  Add block ref ID's to selection and Copy them to clipboard
-*  Copy embeded block reference
-*  Copy embeded alias block reference
+*  Copy block embeds from selection and Copy them to clipboard
+*  Copy block embeds as aliases 
 *  Replace a link with its original text (via context menu or CP All Commands)
 *  Replace a link with its original text and alias (via context menu or CP All Commands)
 
@@ -30,7 +29,7 @@ Check out this quick video to see what it is all about:
 Note: These commands appear in the context menu when you right mouse click on a line in a file that is being edited. These commands can be toggled off in settings.
 
 ## Selection commands
-*  Select current line
+*  Select current line and expand to block
 *  Select block - previous
 *  Select block - next
 *  Select current line and expand up into previous block
