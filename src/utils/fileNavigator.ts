@@ -3,6 +3,7 @@ import ThePlugin from "../main";
 import { genericFuzzySuggester, suggesterItem } from "../ui/genericFuzzySuggester";
 import { getContextObjects } from "./transporterFunctions";
 import { getDnpForToday } from "./dailyNotesPages";
+import { blocksWhereTagIsUsed, filesWhereTagIsUsed, getAllTagsJustTagNames } from "./tags";
 
 interface fileChooserCallback {
     (targetFileName: string,
@@ -14,9 +15,11 @@ interface fileChooserCallback {
         evetLastLine?: MouseEvent | KeyboardEvent)
 }
 
-const TAG_SEARCH = "#tag file search"
+const TAG_FILE_SEARCH = "#### #tag file search ####";
+const TAG_BLOCK_SEARCH = "---- #tag block search ----";
 
-async function createFileChooser(plugin: ThePlugin, excludeFileFromList?: string): Promise<genericFuzzySuggester> {
+
+async function createFileChooser(plugin: ThePlugin, excludeFileFromList?: string, pullTypeRequest: boolean): Promise<genericFuzzySuggester> {
     const fileList: Array<suggesterItem> = await plugin.fs.getAllFiles("/");
     if (excludeFileFromList) ///don't include this file if needed
         for (let i = 0; i < fileList.length; i++) {
@@ -26,7 +29,8 @@ async function createFileChooser(plugin: ThePlugin, excludeFileFromList?: string
             }
         }
 
-    fileList.unshift({ display: TAG_SEARCH, info: TAG_SEARCH })
+    fileList.unshift({ display: TAG_BLOCK_SEARCH, info: TAG_BLOCK_SEARCH });
+    fileList.unshift({ display: TAG_FILE_SEARCH,  info: TAG_FILE_SEARCH });
 
     // add bookmarks to suggester
     if (plugin.settings.bookmarks.trim().length > 0) {
@@ -118,6 +122,69 @@ async function parseBookmarkForItsElements(plugin: ThePlugin, bookmarkCommandStr
     }
 }
 
+async function createTagFileListChooser(plugin: ThePlugin, returnEndPoint: boolean, showTop: boolean, callback: fileChooserCallback): Promise<void> {
+    const tagList = getAllTagsJustTagNames();
+    if (tagList.length <= 0) {
+        new Notice("No tags in this vault");
+        return;
+    }
+
+    let tagListArray: Array<suggesterItem> = [];
+    for (const tag of tagList)
+        tagListArray.push({ display: tag, info: tag })
+
+    const tagChooser = new genericFuzzySuggester(plugin);
+    tagChooser.setSuggesterData(tagListArray);
+    tagChooser.setPlaceholder("Select a tag");
+    await tagChooser.display(async (tagChosen: suggesterItem, evetLastLine: MouseEvent | KeyboardEvent) => {
+        let tagFileListArray: Array<suggesterItem> = [];
+        const filesForChosenTag = filesWhereTagIsUsed(tagChosen.info);
+        for (const tag of filesForChosenTag)
+            tagFileListArray.push({ display: tag, info: tag })
+    
+        const tagFileChooser = new genericFuzzySuggester(plugin);
+        tagFileChooser.setSuggesterData(tagFileListArray);
+        tagFileChooser.setPlaceholder("Select a file");
+    
+        await tagFileChooser.display(async (fieleChosen: suggesterItem, evt: MouseEvent | KeyboardEvent) => {
+            const fileContentsArray: Array<suggesterItem> = await convertFileIntoArray(plugin, fieleChosen.info);
+            if (showTop) fileContentsArray.unshift({ display: "-- Top of file --", info: -1 });
+            await displayFileLineSuggesterFromFileList(plugin, returnEndPoint, showTop, fieleChosen.info, fileContentsArray, 0, evt, callback);
+        });
+    });
+}
+
+
+async function createTagBlockListChooser(plugin: ThePlugin, returnEndPoint: boolean, showTop: boolean, callback: fileChooserCallback): Promise<void> {
+    const tagList = getAllTagsJustTagNames();
+    if (tagList.length <= 0) {
+        new Notice("No tags in this vault");
+        return;
+    }
+
+    let tagListArray: Array<suggesterItem> = [];
+    for (const tag of tagList)
+        tagListArray.push({ display: tag, info: tag })
+
+    const tagChooser = new genericFuzzySuggester(plugin);
+    tagChooser.setSuggesterData(tagListArray);
+    tagChooser.setPlaceholder("Select a tag");
+    await tagChooser.display(async (tagChosen: suggesterItem, evetLastLine: MouseEvent | KeyboardEvent) => {
+        let tagFileListArray: Array<suggesterItem> = [];
+        const tagBlocks = blocksWhereTagIsUsed(plugin,tagChosen.info);
+        for (const tag of await tagBlocks)
+            tagFileListArray.push({ display: tag.file + "\n" + tag.blockText, info: tag })
+    
+        const tagBlockChooser = new genericFuzzySuggester(plugin);
+        tagBlockChooser.setSuggesterData(tagFileListArray);
+        tagBlockChooser.setPlaceholder("Select a block");
+
+        await tagBlockChooser.display(async (tagBlock: suggesterItem, evt: MouseEvent | KeyboardEvent) => {
+            callback(tagBlock.info.file, await convertFileIntoArray(plugin, tagBlock.info.file) , tagBlock.info.position.start.line, tagBlock.info.position.end.line, evt);            
+        });
+    });
+}
+
 // displays a file selection  suggester,  then the contents of the file, then calls the callback  with:
 // Callback function  will receive: Path+FileName, file contents as an array and line choosen
 // if returnEndPoint = true, another suggester is shown so user can select endpoint of selection from file
@@ -125,7 +192,7 @@ async function parseBookmarkForItsElements(plugin: ThePlugin, bookmarkCommandStr
 // pullTypeRequest - if it is a pull type reqeust, this should be true, some commands might need different behavior if a pull
 async function displayFileLineSuggester(plugin: ThePlugin, returnEndPoint: boolean, showTop: boolean, pullTypeRequest: boolean, callback: fileChooserCallback): Promise<void> {
     const currentFilePath = getContextObjects().currentFile !== null ? getContextObjects().currentFile.path : null;
-    const chooser = await createFileChooser(plugin, currentFilePath);
+    const chooser = await createFileChooser(plugin, currentFilePath, pullTypeRequest);
 
     await chooser.display(async (fileSelected: suggesterItem, evtFileSelected: MouseEvent | KeyboardEvent) => {
         const shiftKeyUsed = evtFileSelected.shiftKey;
@@ -133,7 +200,13 @@ async function displayFileLineSuggester(plugin: ThePlugin, returnEndPoint: boole
         let fileContentsStartingLine = 0;
         let targetFileName = fileSelected.info;
 
-         if (targetFileName.search(";") > 0) { // a bookmark was selected with a command. process callback
+        if (targetFileName === TAG_FILE_SEARCH) {
+            await createTagFileListChooser(plugin, returnEndPoint, showTop, callback);
+            return;
+        } else if (targetFileName === TAG_BLOCK_SEARCH) {
+            await createTagBlockListChooser(plugin, returnEndPoint, showTop, callback);
+            return;
+        } else if (targetFileName.search(";") > 0) { // a bookmark was selected with a command. process callback
             const bkmkInfo = await parseBookmarkForItsElements(plugin, targetFileName, pullTypeRequest);
             if (shiftKeyUsed === false) { // bookmark location, perform the transport command
                 callback(bkmkInfo.fileName, bkmkInfo.fileBookmarkContentsArray, bkmkInfo.fileLineNumber, bkmkInfo.fileLineNumber, evtFileSelected);
@@ -148,37 +221,45 @@ async function displayFileLineSuggester(plugin: ThePlugin, returnEndPoint: boole
         const fileContentsArray: Array<suggesterItem> = await convertFileIntoArray(plugin, targetFileName);
         if (showTop) fileContentsArray.unshift({ display: "-- Top of file --", info: -1 });
 
-        const firstLinechooser = new genericFuzzySuggester(plugin);
-        firstLinechooser.setPlaceholder("Select the line from file")
-
-        if (fileContentsStartingLine > 0)
-            firstLinechooser.setSuggesterData(fileContentsArray.slice(fileContentsStartingLine));
-        else
-            firstLinechooser.setSuggesterData(fileContentsArray);
-
-        await firstLinechooser.display(async (iFileLocation: suggesterItem, evtFirstLine: MouseEvent | KeyboardEvent) => {
-            let startFilePosition = Number(iFileLocation.info);
-            const endFilePosition = startFilePosition;
-            if (showTop) fileContentsArray.splice(0, 1); // remove "-- Top of File -- "
-            if (returnEndPoint) { //if expecting endpoint, show suggester again
-                if (startFilePosition === fileContentsArray.length - 1) {
-                    //only one element in file, or selection is end of file
-                    callback(targetFileName, fileContentsArray, startFilePosition, startFilePosition, evtFileSelected, evtFirstLine);
-                } else {
-                    startFilePosition = startFilePosition === -1 ? 0 : startFilePosition;
-                    const endPointArray = fileContentsArray.slice(startFilePosition);
-                    const lastLineChooser = new genericFuzzySuggester(plugin);
-                    lastLineChooser.setSuggesterData(endPointArray);
-                    lastLineChooser.setPlaceholder("Select the last line for the selection")
-                    await lastLineChooser.display(async (iFileLocationEndPoint: suggesterItem, evetLastLine: MouseEvent | KeyboardEvent) => {
-                        callback(targetFileName, fileContentsArray, startFilePosition, Number(iFileLocationEndPoint.info), evtFileSelected, evtFirstLine, evetLastLine);
-                    });
-                }
-            } else {
-                callback(targetFileName, fileContentsArray, startFilePosition, endFilePosition, evtFileSelected, evtFirstLine);
-            }
-        });
+        await displayFileLineSuggesterFromFileList(plugin, returnEndPoint, showTop, targetFileName, fileContentsArray, fileContentsStartingLine, evtFileSelected, callback);
     });
 } //displayFileLineSuggester
+
+// supports displayFileLineSuggester and displayTagFileSuggester
+async function displayFileLineSuggesterFromFileList(plugin: ThePlugin, returnEndPoint: boolean, showTop: boolean, targetFileName: string,
+                                                    fileContentsArray: Array<suggesterItem>, fileContentsStartingLine: number,
+                                                    evtFileSelected: MouseEvent | KeyboardEvent, callback: fileChooserCallback) {
+    const firstLinechooser = new genericFuzzySuggester(plugin);
+    firstLinechooser.setPlaceholder("Select the line from file")
+
+    if (fileContentsStartingLine > 0)
+        firstLinechooser.setSuggesterData(fileContentsArray.slice(fileContentsStartingLine));
+    else
+        firstLinechooser.setSuggesterData(fileContentsArray);
+
+    await firstLinechooser.display(async (iFileLocation: suggesterItem, evtFirstLine: MouseEvent | KeyboardEvent) => {
+        let startFilePosition = Number(iFileLocation.info);
+        const endFilePosition = startFilePosition;
+        if (showTop) fileContentsArray.splice(0, 1); // remove "-- Top of File -- "
+        if (returnEndPoint) { //if expecting endpoint, show suggester again
+            if (startFilePosition === fileContentsArray.length - 1) {
+                //only one element in file, or selection is end of file
+                callback(targetFileName, fileContentsArray, startFilePosition, startFilePosition, evtFileSelected, evtFirstLine);
+            } else {
+                startFilePosition = startFilePosition === -1 ? 0 : startFilePosition;
+                const endPointArray = fileContentsArray.slice(startFilePosition);
+                const lastLineChooser = new genericFuzzySuggester(plugin);
+                lastLineChooser.setSuggesterData(endPointArray);
+                lastLineChooser.setPlaceholder("Select the last line for the selection")
+                await lastLineChooser.display(async (iFileLocationEndPoint: suggesterItem, evetLastLine: MouseEvent | KeyboardEvent) => {
+                    callback(targetFileName, fileContentsArray, startFilePosition, Number(iFileLocationEndPoint.info), evtFileSelected, evtFirstLine, evetLastLine);
+                });
+            }
+        } else {
+            callback(targetFileName, fileContentsArray, startFilePosition, endFilePosition, evtFileSelected, evtFirstLine);
+        }
+    });
+
+} //displayFileLineSuggesterFromFileList
 
 export { displayFileLineSuggester, convertFileIntoArray, createFileChooser, openFileInObsidian, parseBookmarkForItsElements }

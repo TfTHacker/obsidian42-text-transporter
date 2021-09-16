@@ -22,6 +22,7 @@ function getContextObjects(): any {
         currentLine = Number(editor.getCursor().line);
         currentLineEmpty = editor.getLine(currentLine).trim().length === 0 ? true : false;
     }
+    console.log(cache)
     return { currentView, currentFile, cache, editor, currentLine, currentLineEmpty };
 }
 
