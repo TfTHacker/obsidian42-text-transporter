@@ -1,4 +1,4 @@
-import { TFile, getLinkpath, Editor } from "obsidian";
+import { TFile, getLinkpath, Editor, Notice, getAllTags } from "obsidian";
 import ThePlugin from "../main";
 import { genericFuzzySuggester, suggesterItem } from "../ui/genericFuzzySuggester";
 import { getContextObjects } from "./transporterFunctions";
@@ -14,6 +14,8 @@ interface fileChooserCallback {
         evetLastLine?: MouseEvent | KeyboardEvent)
 }
 
+const TAG_SEARCH = "#tag file search"
+
 async function createFileChooser(plugin: ThePlugin, excludeFileFromList?: string): Promise<genericFuzzySuggester> {
     const fileList: Array<suggesterItem> = await plugin.fs.getAllFiles("/");
     if (excludeFileFromList) ///don't include this file if needed
@@ -24,13 +26,15 @@ async function createFileChooser(plugin: ThePlugin, excludeFileFromList?: string
             }
         }
 
+    fileList.unshift({ display: TAG_SEARCH, info: TAG_SEARCH })
+
     // add bookmarks to suggester
     if (plugin.settings.bookmarks.trim().length > 0) {
         const bookmarks = plugin.settings.bookmarks.trim().split('\n')
         for (let i = bookmarks.length - 1; i >= 0; i--) {
             let filePath = bookmarks[i];
             if (filePath.search(";") > 0) filePath = filePath.substr(0, filePath.search(";"));
-            filePath = filePath.replace("*","");
+            filePath = filePath.replace("*", "");
             if (filePath === "DNPTODAY" || await plugin.app.vault.adapter.exists(filePath))
                 fileList.unshift({ display: "Bookmark: " + bookmarks[i], info: bookmarks[i] })
         }
@@ -73,40 +77,45 @@ interface bookmarkInfo {
 async function parseBookmarkForItsElements(plugin: ThePlugin, bookmarkCommandString: string, pullTypeRequest = false): Promise<bookmarkInfo> {
     let error = 0; // error = 0 no problem, 1 = location in file does not exists, 2 file doesnt exist
     let isContextMenuCommand = false;
-    if(bookmarkCommandString.substr(0,1)==="*") {
+    if (bookmarkCommandString.substr(0, 1) === "*") {
         isContextMenuCommand = true;
         bookmarkCommandString = bookmarkCommandString.substring(1);
     }
     let filePath = bookmarkCommandString.substring(0, bookmarkCommandString.search(";"));
     const command = bookmarkCommandString.substring(filePath.length + 1).toLocaleUpperCase().trim();
-    if (filePath === "DNPTODAY") filePath = await getDnpForToday();
-    let lineNumber = -1; //default for top
-    let fileBkmrkContentsArray: Array<suggesterItem> = null;
-    if (await plugin.app.vault.adapter.exists(filePath)) {
-        fileBkmrkContentsArray = await convertFileIntoArray(plugin, filePath);
-        if (command === "BOTTOM" || command !== "TOP") {
-            if (command === "BOTTOM")
-                lineNumber = fileBkmrkContentsArray.length - 1;
-            else { // bookmark has a location, so find in file.
-                for (let i = 0; i < fileBkmrkContentsArray.length; i++) {
-                    if (fileBkmrkContentsArray[i].display.toLocaleUpperCase().trim() === command) {
-                        lineNumber = pullTypeRequest === true ? i + 1 : i;
-                        break;
+    try {
+        if (filePath === "DNPTODAY") filePath = await getDnpForToday();
+        let lineNumber = -1; //default for top
+        let fileBkmrkContentsArray: Array<suggesterItem> = null;
+        if (await plugin.app.vault.adapter.exists(filePath)) {
+            fileBkmrkContentsArray = await convertFileIntoArray(plugin, filePath);
+            if (command === "BOTTOM" || command !== "TOP") {
+                if (command === "BOTTOM")
+                    lineNumber = fileBkmrkContentsArray.length - 1;
+                else { // bookmark has a location, so find in file.
+                    for (let i = 0; i < fileBkmrkContentsArray.length; i++) {
+                        if (fileBkmrkContentsArray[i].display.toLocaleUpperCase().trim() === command) {
+                            lineNumber = pullTypeRequest === true ? i + 1 : i;
+                            break;
+                        }
                     }
+                    if (lineNumber === -1) error = 1; //location doesnt exist in file
                 }
-                if (lineNumber === -1) error = 1; //location doesnt exist in file
             }
-        }
-    } else
-        error = 2;
+        } else
+            error = 2;
 
-    return { 
-        fileName: filePath, 
-        fileLineNumber: lineNumber, 
-        fileBookmarkContentsArray: fileBkmrkContentsArray, 
-        errorNumber: error, 
-        contextMenuCommand: isContextMenuCommand 
-    } 
+        return {
+            fileName: filePath,
+            fileLineNumber: lineNumber,
+            fileBookmarkContentsArray: fileBkmrkContentsArray,
+            errorNumber: error,
+            contextMenuCommand: isContextMenuCommand
+        }
+    } catch (e) {
+        new Notice("Something is wrong with the bookmark. File system reports: " + e.toString());
+        error = 2;
+    }
 }
 
 // displays a file selection  suggester,  then the contents of the file, then calls the callback  with:
@@ -124,15 +133,14 @@ async function displayFileLineSuggester(plugin: ThePlugin, returnEndPoint: boole
         let fileContentsStartingLine = 0;
         let targetFileName = fileSelected.info;
 
-        if (targetFileName.search(";") > 0) { // a bookmark was selected with a command. process callback
+         if (targetFileName.search(";") > 0) { // a bookmark was selected with a command. process callback
             const bkmkInfo = await parseBookmarkForItsElements(plugin, targetFileName, pullTypeRequest);
-            console.log(bkmkInfo)
             if (shiftKeyUsed === false) { // bookmark location, perform the transport command
                 callback(bkmkInfo.fileName, bkmkInfo.fileBookmarkContentsArray, bkmkInfo.fileLineNumber, bkmkInfo.fileLineNumber, evtFileSelected);
                 return;
             } else {  // use the bookmarked location as starting point for next step in commands
                 fileContentsStartingLine = bkmkInfo.fileLineNumber;
-                targetFileName = bkmkInfo.fileLineNumber;
+                targetFileName = bkmkInfo.fileName;
                 showTop = false;
             }
         }

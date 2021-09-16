@@ -4,16 +4,16 @@ import { fileCacheAnalyzer, cacheDetails } from './fileCacheAnalyzer';
 import {  suggesterItem } from "../ui/genericFuzzySuggester";
 import { displayFileLineSuggester, openFileInObsidian, parseBookmarkForItsElements } from "./fileNavigator";
 import { generateBlockId } from "./blockId";
+import { getActiveViewType, viewType } from "./viewManagement";
 
 function getContextObjects(): any {
-
     const currentView: View = this.app.workspace.activeLeaf.view;
     let cache: CachedMetadata = null;
     let currentFile: TFile = null;
     let editor: Editor = null;
     let currentLine = null;
     let currentLineEmpty: boolean = null;
-    if (this.app.workspace.activeLeaf.getViewState().type !== "empty") {
+    if (getActiveViewType()===viewType.source) {
         // @ts-ignore
         currentFile = currentView.file;
         cache = this.app.metadataCache.getFileCache(currentFile);
@@ -161,13 +161,17 @@ async function copyOrPushLineOrSelectionToNewLocationUsingCurrentCursorLocationA
             const lineCount = linesSelected > 1 ? linesSelected - 1 : 0;
             openFileInObsidian(plugin, bookmarkInfo.fileName, bookmarkInfo.fileLineNumber + 1, lineCount)
         }
-        
     }
+}
+
+async function copyCurrentFileNameAsLinkToNewLocation(plugin: ThePlugin): Promise<void> {
+    const fileName = getContextObjects().currentFile.path.replace(".md","");
+    copyOrPushLineOrSelectionToNewLocationWithFileLineSuggester(plugin, true, `[[${fileName}]]`);
 }
 
 //copy a block reference of the current line to another file
 async function pushBlockReferenceToAnotherFile(plugin: ThePlugin): Promise<void> {
-    await displayFileLineSuggester(plugin, false, true, false, async (targetFileName, fileContentsArray, startLine, endLineNumber, evtFileSelected, evtFirstLine) => {
+    await displayFileLineSuggester(plugin, false, true, false,  async (targetFileName, fileContentsArray, startLine, endLineNumber, evtFileSelected, evtFirstLine) => {
         if (startLine === -1) { //go to top of file, but test for YAML
             const f = new fileCacheAnalyzer(plugin, targetFileName);
             if (f.details.length > 0 && f.details[0].type === "yaml")
@@ -312,6 +316,7 @@ export {
     getContextObjects, copyBlockRefToClipboard,
     copyOrPushLineOrSelectionToNewLocationWithFileLineSuggester, copyOrPushLineOrSelectionToNewLocation,
     copyOrPushLineOrSelectionToNewLocationUsingCurrentCursorLocationAndBoomark,
+    copyCurrentFileNameAsLinkToNewLocation,
     copyOrPulLineOrSelectionFromAnotherLocation, addBlockRefsToSelection,
     pushBlockReferenceToAnotherFile, pullBlockReferenceFromAnotherFile,
     testIfCursorIsOnALink, copyBlockReferenceToCurrentCusorLocation,

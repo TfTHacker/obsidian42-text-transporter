@@ -18,7 +18,7 @@ export default class pluginCommands {
             command: async (): Promise<void> => (new quickCaptureModal(this.plugin)).open()
         },
         {
-            caption: "Select current line/expand to block", shortcut: "SL", editModeOnly: true, isContextMenuItem: false, cmItemEnabled: false, icon: "highlight-glyph",
+            caption: "Select current line/expand to block", shortcut: "SB", editModeOnly: true, isContextMenuItem: false, cmItemEnabled: false, icon: "highlight-glyph",
             command: async (): Promise<void> => selectionTools.selectCurrentLine(this.plugin)
         },
         {
@@ -90,6 +90,10 @@ export default class pluginCommands {
             command: async (): Promise<void> => transporter.pullBlockReferenceFromAnotherFile(this.plugin)
         },
         {
+            caption: "Send link of current note", shortcut: "SL", editModeOnly: true, isContextMenuItem: true, cmItemEnabled: true, icon: "paper-plane",
+            command: async (): Promise<void> => transporter.copyCurrentFileNameAsLinkToNewLocation(this.plugin)
+        },
+        {
             caption: "Open a bookmarked file", shortcut: "BO", editModeOnly: false, isContextMenuItem: false, cmItemEnabled: false, icon: "go-to-file",
             command: async (): Promise<void> => await openBookmark(this.plugin)
         },
@@ -113,7 +117,7 @@ export default class pluginCommands {
 
 
     // list of all commands available in Command  Pallet format
-    async masterControlProgram(): Promise<void> { // Yes this is a reference to Tron https://www.imdb.com/title/tt0084827/
+    async masterControlProgram(plugin: ThePlugin): Promise<void> { // Yes this is a reference to Tron https://www.imdb.com/title/tt0084827/
         const currentView = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
         let editMode = true;
         if (!currentView || currentView.getMode() !== "source") editMode = false;
@@ -123,6 +127,16 @@ export default class pluginCommands {
         for (const cmd of this.commands)
             if (cmd.editModeOnly === false || (editMode && cmd.editModeOnly))
                 cpCommands.push({ display: `${cmd.caption} (${cmd.shortcut})`, info: cmd.command });
+
+        if (editMode) {
+            for (const bookmark of plugin.settings.bookmarks.split("\n")) {
+                if (bookmark.substr(0, 1) === "*") {
+                    cpCommands.push({ display: `Copy to: ${bookmark}`, info: async (e) =>{await transporter.copyOrPushLineOrSelectionToNewLocationUsingCurrentCursorLocationAndBoomark(plugin, true, bookmark, e)} });
+                    cpCommands.push({ display: `   Push: ${bookmark}`, info: async (e) =>{await transporter.copyOrPushLineOrSelectionToNewLocationUsingCurrentCursorLocationAndBoomark(plugin, false, bookmark, e)} });
+                }
+            }
+        }
+
         if (this.plugin.settings.enableDebugMode)
             cpCommands.push({ display: "Reload plugin (Debugging)", info: async (): Promise<void> => this.reloadPlugin() })
 
@@ -137,7 +151,7 @@ export default class pluginCommands {
             id: this.plugin.appID + '-combinedCommands', name: 'All Commands List',
             icon: "TextTransporter",
             callback: async () => {
-                await this.masterControlProgram();
+                await this.masterControlProgram(this.plugin);
             }
         });
 
@@ -172,9 +186,9 @@ export default class pluginCommands {
                                 .onClick(async () => { await value.command() });
                         });
                 //load bookmmarks in CM
-                for(const bookmark of plugin.settings.bookmarks.split("\n")) {
-                    if(bookmark.substr(0,1)==="*") {
-                        const bookmarkText = (bookmark.length>=40 ? bookmark.substr(0,40) + "..." : bookmark).replace("*","");
+                for (const bookmark of plugin.settings.bookmarks.split("\n")) {
+                    if (bookmark.substr(0, 1) === "*") {
+                        const bookmarkText = (bookmark.length >= 40 ? bookmark.substr(0, 40) + "..." : bookmark).replace("*", "");
                         menu.addItem(item => {
                             item
                                 .setTitle("Copy to: " + bookmarkText)
@@ -183,7 +197,6 @@ export default class pluginCommands {
                         });
                         menu.addItem(item => {
                             item
-                            .setTitle("Push to")
                                 .setTitle("Push to: " + bookmarkText)
                                 .onClick(async (e) => await transporter.copyOrPushLineOrSelectionToNewLocationUsingCurrentCursorLocationAndBoomark(plugin, false, bookmark, e))
                         });

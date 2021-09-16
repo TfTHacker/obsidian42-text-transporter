@@ -1,8 +1,8 @@
 import { Plugin, } from "obsidian";
 import fileSystem from "./utils/fileSystem";
 import pluginCommands from "./ui/cpCommands";
-import { Settings, DEFAULT_SETTINGS, SettingsTab } from './ui/settings';
-import { addIcons } from './ui/icons';
+import { Settings, DEFAULT_SETTINGS, SettingsTab } from "./ui/settings";
+import { addIcons } from "./ui/icons";
 
 export default class ThePlugin extends Plugin {
 	appName = "Obsidian42 - Text Transporter";
@@ -25,7 +25,7 @@ export default class ThePlugin extends Plugin {
 	onunload(): void { console.log("unloading " + this.appName) }
 
 	configureRibbonCommand(): void {
-		this.ribbonIcon = this.addRibbonIcon("TextTransporter", this.appName, async () => this.commands.masterControlProgram());
+		this.ribbonIcon = this.addRibbonIcon("TextTransporter", this.appName, async () => this.commands.masterControlProgram(this));
 	}
 
 	async loadSettings(): Promise<void> { this.settings = Object.assign({}, DEFAULT_SETTINGS, await this.loadData()) }
