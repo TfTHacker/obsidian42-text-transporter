@@ -1,7 +1,7 @@
 import { CachedMetadata, Pos, SectionCache, CacheItem, HeadingCache, TFile, Loc } from "obsidian";
 import ThePlugin from "../main";
 
-interface cacheDetails {
+export interface cacheDetails {
     index: number;
     type: string;
     lineStart: number;  // helper value, make it easier to loop through this object.
@@ -12,7 +12,7 @@ interface cacheDetails {
     headingLevel?: number;
 }
 
-class fileCacheAnalyzer {
+export class fileCacheAnalyzer {
     cache: CachedMetadata;
     details: Array<cacheDetails> = [];
     plugin: ThePlugin;
@@ -157,7 +157,4 @@ class fileCacheAnalyzer {
     positionOfItemWithinSameRange(firstPosition: Pos, secondPosition: Pos): boolean {
         return firstPosition.start.line >= secondPosition.start.line && firstPosition.end.line <= secondPosition.end.line
     }
-
 }
-
-export { cacheDetails, fileCacheAnalyzer }

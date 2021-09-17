@@ -114,7 +114,6 @@ export class SettingsTab extends PluginSettingTab {
 			}
 		}
 
-
 		containerEl.createEl("h2", { text: "Debugging support" });
 		new Setting(containerEl)
 			.setName('Debugging support')

@@ -1,10 +1,15 @@
 import { Notice, MarkdownView } from "obsidian";
 import ThePlugin from "../main";
 import { genericFuzzySuggester, suggesterItem } from "../ui/genericFuzzySuggester";
-import { openFileInObsidian, convertFileIntoArray, parseBookmarkForItsElements } from "./fileNavigator";
-import { getDnpForToday } from "./dailyNotesPages";
+import { openFileInObsidian, parseBookmarkForItsElements } from "./fileNavigator";
 
-async function AddBookmarkFromCurrentView(plugin: ThePlugin): Promise<void> {
+// Creates a bookmark from the current selection point. 
+// Bookmarks can be created for:
+//  Top of file
+//  Bottom of file
+//  Specific location of file based on matching a string
+// Optionally, a bookmark can be added to the context menu by adding an asterisk to the beginning of the line. 
+export async function AddBookmarkFromCurrentView(plugin: ThePlugin): Promise<void> {
     const currentView = plugin.app.workspace.getActiveViewOfType(MarkdownView);
     if (!currentView || currentView.getMode() !== "source") {
         new Notice("A file must be in source edit mode to add a bookmark");
@@ -25,7 +30,7 @@ async function AddBookmarkFromCurrentView(plugin: ThePlugin): Promise<void> {
     locationChooser.display((location: suggesterItem) => {
         let command = location.info;
         let prefix = "";
-        if(location.info.indexOf("*")>0) {
+        if (location.info.indexOf("*") > 0) {
             command = command.replace("*", "");
             prefix = "*";
         }
@@ -42,8 +47,8 @@ async function AddBookmarkFromCurrentView(plugin: ThePlugin): Promise<void> {
     });
 }
 
-
-async function removeBookmark(plugin: ThePlugin): Promise<void> {
+// Quick way to remove a bookmark from the bookmarks list
+export async function removeBookmark(plugin: ThePlugin): Promise<void> {
     const bookmarks = plugin.settings.bookmarks.split("\n")
     if (bookmarks.length === 0)
         new Notice("There are no bookmarks defined.")
@@ -61,7 +66,9 @@ async function removeBookmark(plugin: ThePlugin): Promise<void> {
     }
 }
 
-async function openBookmark(plugin: ThePlugin): Promise<void> {
+
+// Open the file of a bookmark at its defined location
+export async function openBookmark(plugin: ThePlugin): Promise<void> {
     const bookmarks = plugin.settings.bookmarks.split("\n")
     if (bookmarks.length === 0)
         new Notice("There are no bookmarks defined.")
@@ -73,12 +80,8 @@ async function openBookmark(plugin: ThePlugin): Promise<void> {
         chooser.setSuggesterData(fileList);
         chooser.setPlaceholder("Select a file")
         await chooser.display(async (fileSelected: suggesterItem) => {
-            const bookmarkInfo = await parseBookmarkForItsElements(plugin, fileSelected.info,false);
+            const bookmarkInfo = await parseBookmarkForItsElements(plugin, fileSelected.info, false);
             openFileInObsidian(plugin, bookmarkInfo.fileName, bookmarkInfo.fileLineNumber, 0)
         });
     }
 }
-
-
-
-export { AddBookmarkFromCurrentView, openBookmark, removeBookmark }

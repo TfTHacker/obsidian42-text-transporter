@@ -1,8 +1,7 @@
-import { CachedMetadata, App } from "obsidian";
+import { CachedMetadata, App, Pos } from "obsidian";
 import ThePlugin from "../main";
 import { fileCacheAnalyzer } from "./fileCacheAnalyzer";
 import { convertFileIntoArray } from "./fileNavigator";
-
 
 //convenience function
 export function getAllTagsWithCounts(): string[] {
@@ -15,7 +14,13 @@ export function getAllTagsJustTagNames(): string[] {
     return Object.keys(app.metadataCache.getTags()).sort((a,b)=> a.localeCompare(b))
 }
 
-export function locationsWhereTagIsUsed(findTag: string): string[] {
+export interface tagLocation {
+    tag: string;
+    filePath: string;
+    position: Pos;
+}
+
+export function locationsWhereTagIsUsed(findTag: string): Array<tagLocation> {
     // @ts-ignore
     const oApp: App = app;
     const results = [];
@@ -24,29 +29,29 @@ export function locationsWhereTagIsUsed(findTag: string): string[] {
         if(cache.tags)
             for(const tag of cache.tags) 
                 if(findTag === tag.tag)
-                    results.push( { file: file.path, position: tag.position})
+                    results.push( { tag:tag, filePath: file.path, position: tag.position})
     }
-    return results.sort((a,b)=> a.file.localeCompare(b.file))
+    return results.sort((a:tagLocation,b:tagLocation)=> a.filePath.localeCompare(b.filePath))
 }
 
 export function filesWhereTagIsUsed(findTag: string): string[] {
     const filesList = [];
     for(const l of locationsWhereTagIsUsed(findTag))
-        if(!filesList.includes(l["file"])) filesList.push(l["file"])
+        if(!filesList.includes(l.filePath)) filesList.push(l.filePath)
     return filesList;
 }
 
 export async function blocksWhereTagIsUsed(plugin: ThePlugin, findTag: string): Promise<string[]> {
     const blockInfo = [];
     for(const l of locationsWhereTagIsUsed(findTag)) {
-        const f = new fileCacheAnalyzer(plugin, l.file);
+        const f = new fileCacheAnalyzer(plugin, l.filePath);
         const block = f.getBlockAtLine(l.position.start.line,true);
         if(block.type!=="yaml") {
-            const taggedFileArray = await convertFileIntoArray(plugin, l.file)
+            const taggedFileArray = await convertFileIntoArray(plugin, l.filePath)
             let blockText = ""
             for(const line of taggedFileArray.slice(block.lineStart, block.lineEnd+1))
                 blockText += line.display + "\n";
-            blockInfo.push({file: l.file, position: block.position, blockText: blockText.trim()})
+            blockInfo.push({file: l.filePath, position: block.position, blockText: blockText.trim()})
         }        
     }   
     return blockInfo;

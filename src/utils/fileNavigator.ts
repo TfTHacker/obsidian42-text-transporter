@@ -5,7 +5,7 @@ import { getContextObjects } from "./transporterFunctions";
 import { getDnpForToday } from "./dailyNotesPages";
 import { blocksWhereTagIsUsed, filesWhereTagIsUsed, getAllTagsJustTagNames } from "./tags";
 
-interface fileChooserCallback {
+export interface fileChooserCallback {
     (targetFileName: string,
         fileContentsArray: Array<suggesterItem>,
         startLine: number,
@@ -19,7 +19,7 @@ const TAG_FILE_SEARCH = "#### #tag file search ####";
 const TAG_BLOCK_SEARCH = "---- #tag block search ----";
 
 
-async function createFileChooser(plugin: ThePlugin, excludeFileFromList?: string): Promise<genericFuzzySuggester> {
+export async function createFileChooser(plugin: ThePlugin, excludeFileFromList?: string): Promise<genericFuzzySuggester> {
     const fileList: Array<suggesterItem> = await plugin.fs.getAllFiles("/");
     if (excludeFileFromList) ///don't include this file if needed
         for (let i = 0; i < fileList.length; i++) {
@@ -51,14 +51,14 @@ async function createFileChooser(plugin: ThePlugin, excludeFileFromList?: string
 }
 
 // convert file into an array based on suggesterITem
-async function convertFileIntoArray(plugin: ThePlugin, filePath: string): Promise<Array<suggesterItem>> {
+export async function convertFileIntoArray(plugin: ThePlugin, filePath: string): Promise<Array<suggesterItem>> {
     const fileContentsArray: Array<suggesterItem> = [];
     for (const [key, value] of Object.entries((await plugin.app.vault.adapter.read(filePath)).split('\n')))
         fileContentsArray.push({ display: value, info: key });
     return fileContentsArray;
 }
 
-async function openFileInObsidian(plugin: ThePlugin, filePath: string, gotoStartLineNumber = 0, lineCount = 0): Promise<void> {
+export async function openFileInObsidian(plugin: ThePlugin, filePath: string, gotoStartLineNumber = 0, lineCount = 0): Promise<void> {
     const newLeaf = plugin.app.workspace.splitActiveLeaf('vertical');
     const file: TFile = plugin.app.metadataCache.getFirstLinkpathDest(getLinkpath(filePath), "/");
     await newLeaf.openFile(file, { active: true });
@@ -75,7 +75,7 @@ async function openFileInObsidian(plugin: ThePlugin, filePath: string, gotoStart
     }, 500);
 }
 
-interface bookmarkInfo {
+export interface bookmarkInfo {
     fileName: string;
     fileLineNumber: number;
     fileBookmarkContentsArray: Array<suggesterItem>;
@@ -84,7 +84,7 @@ interface bookmarkInfo {
 }
 
 // pullTypeRequest - if it is a pull type reqeust, this should be true, some commands might need different behavior if a pull
-async function parseBookmarkForItsElements(plugin: ThePlugin, bookmarkCommandString: string, pullTypeRequest = false): Promise<bookmarkInfo> {
+export async function parseBookmarkForItsElements(plugin: ThePlugin, bookmarkCommandString: string, pullTypeRequest = false): Promise<bookmarkInfo> {
     let error = 0; // error = 0 no problem, 1 = location in file does not exists, 2 file doesnt exist
     let isContextMenuCommand = false;
     if (bookmarkCommandString.substr(0, 1) === "*") {
@@ -128,7 +128,7 @@ async function parseBookmarkForItsElements(plugin: ThePlugin, bookmarkCommandStr
     }
 }
 
-async function createTagFileListChooser(plugin: ThePlugin, returnEndPoint: boolean, showTop: boolean, callback: fileChooserCallback): Promise<void> {
+export async function createTagFileListChooser(plugin: ThePlugin, returnEndPoint: boolean, showTop: boolean, callback: fileChooserCallback): Promise<void> {
     const tagList = getAllTagsJustTagNames();
     if (tagList.length <= 0) {
         new Notice("No tags in this vault");
@@ -160,8 +160,7 @@ async function createTagFileListChooser(plugin: ThePlugin, returnEndPoint: boole
     });
 }
 
-
-async function createTagBlockListChooser(plugin: ThePlugin, returnEndPoint: boolean, showTop: boolean, callback: fileChooserCallback): Promise<void> {
+export async function createTagBlockListChooser(plugin: ThePlugin, returnEndPoint: boolean, showTop: boolean, callback: fileChooserCallback): Promise<void> {
     const tagList = getAllTagsJustTagNames();
     if (tagList.length <= 0) {
         new Notice("No tags in this vault");
@@ -196,7 +195,7 @@ async function createTagBlockListChooser(plugin: ThePlugin, returnEndPoint: bool
 // if returnEndPoint = true, another suggester is shown so user can select endpoint of selection from file
 // show top will diplsay -- top at top of suggester
 // pullTypeRequest - if it is a pull type reqeust, this should be true, some commands might need different behavior if a pull
-async function displayFileLineSuggester(plugin: ThePlugin, returnEndPoint: boolean, showTop: boolean, pullTypeRequest: boolean, callback: fileChooserCallback): Promise<void> {
+export async function displayFileLineSuggester(plugin: ThePlugin, returnEndPoint: boolean, showTop: boolean, pullTypeRequest: boolean, callback: fileChooserCallback): Promise<void> {
     const currentFilePath = getContextObjects().currentFile !== null ? getContextObjects().currentFile.path : null;
     const chooser = await createFileChooser(plugin, currentFilePath);
 
@@ -232,9 +231,9 @@ async function displayFileLineSuggester(plugin: ThePlugin, returnEndPoint: boole
 } //displayFileLineSuggester
 
 // supports displayFileLineSuggester and displayTagFileSuggester
-async function displayFileLineSuggesterFromFileList(plugin: ThePlugin, returnEndPoint: boolean, showTop: boolean, targetFileName: string,
+export async function displayFileLineSuggesterFromFileList(plugin: ThePlugin, returnEndPoint: boolean, showTop: boolean, targetFileName: string,
                                                     fileContentsArray: Array<suggesterItem>, fileContentsStartingLine: number,
-                                                    evtFileSelected: MouseEvent | KeyboardEvent, callback: fileChooserCallback) {
+                                                    evtFileSelected: MouseEvent | KeyboardEvent, callback: fileChooserCallback): Promise<void> {
     const firstLinechooser = new genericFuzzySuggester(plugin);
     firstLinechooser.setPlaceholder("Select the line from file")
 
@@ -267,5 +266,3 @@ async function displayFileLineSuggesterFromFileList(plugin: ThePlugin, returnEnd
     });
 
 } //displayFileLineSuggesterFromFileList
-
-export { displayFileLineSuggester, convertFileIntoArray, createFileChooser, openFileInObsidian, parseBookmarkForItsElements }
