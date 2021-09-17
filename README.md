@@ -15,7 +15,7 @@ Check out this quick video to see what it is all about:
 *  Replace a link with its original text (via context menu or CP All Commands)
 *  Replace a link with its original text and alias (via context menu or CP All Commands)
 
-<a href="https://twitter.com/TfTHacker/status/1438881713153794054" target="_blank"><img style="max-width:200px;" src="docs/images/blockcopy.png"></a> Click me!
+<a href="https://twitter.com/TfTHacker/status/1438881713153794054" target="_blank"><img style="max-width:200px;" src="docs/images/blockcopy.png"></a> Click image for video demo!
 
 
 ## Transporter Commands - Copy, Push, Pull 
@@ -37,6 +37,9 @@ Note: These commands appear in the context menu when you right mouse click on a 
 *  Select block - next
 *  Select current line and expand up into previous block
 *  Select current line and expand down into next block
+
+<a href="https://twitter.com/TfTHacker/status/1438895408038690817" target="_blank"><img style="max-width:200px;" src="docs/images/blockcopy.png"></a> Click image for video demo!
+
 
 # Quick Capture
 * Opens a form where you can type in text and then quickly capture it to a file in your vault. The Quick Capture screen accepts enters for new lines. Ctrl+Enter will click the capture button.
