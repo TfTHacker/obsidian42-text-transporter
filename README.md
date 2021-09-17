@@ -38,7 +38,7 @@ Note: These commands appear in the context menu when you right mouse click on a 
 *  Select current line and expand up into previous block
 *  Select current line and expand down into next block
 
-<a href="https://twitter.com/TfTHacker/status/1438895408038690817" target="_blank"><img style="max-width:200px;" src="docs/images/selection.png"></a> Click image for video demo!
+<a href="https://twitter.com/TfTHacker/status/1438895408038690817" target="_blank"><img style="width:200px;" src="docs/images/selection.png"></a> Click image for video demo!
 
 
 # Quick Capture
