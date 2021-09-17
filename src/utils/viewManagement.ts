@@ -1,5 +1,4 @@
 import { MarkdownView } from "obsidian"
-import ThePlugin from '../main';
 
 export enum viewType {
     source,

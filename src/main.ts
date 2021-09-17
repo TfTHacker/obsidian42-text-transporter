@@ -3,7 +3,6 @@ import fileSystem from "./utils/fileSystem";
 import pluginCommands from "./ui/cpCommands";
 import { Settings, DEFAULT_SETTINGS, SettingsTab } from "./ui/settings";
 import { addIcons } from "./ui/icons";
-import { blocksWhereTagIsUsed } from "./utils/tags";
 
 export default class ThePlugin extends Plugin {
 	appName = "Obsidian42 - Text Transporter";
@@ -21,7 +20,6 @@ export default class ThePlugin extends Plugin {
 		addIcons();
 		if (this.settings.enableRibbon) this.configureRibbonCommand();
 		this.addSettingTab(new SettingsTab(this.app, this));
-		console.log( await blocksWhereTagIsUsed(this, "#followUp"))
 	}
 
 	onunload(): void { console.log("unloading " + this.appName) }

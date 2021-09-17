@@ -52,3 +52,8 @@ Note: These commands appear in the context menu when you right mouse click on a 
 * Open Obsidian and go to Settings > Community Plugins ... Turn OFF Safe Mode if it is currently on
 * You then will see a section called "Installed plugins". Click the refresh button to the right.
 * This plugin should now show up. Now simply Enable it with the toggle to the right of it.
+
+# Credits
+I want to give thanks to these great projects, as in some way they are used by this plugin:
+- github.com/chhoumann/quickadd/
+- https://github.com/liamcain/obsidian-daily-notes-interface

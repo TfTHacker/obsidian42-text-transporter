@@ -1,7 +1,7 @@
 import { Notice, MarkdownView } from "obsidian";
 import ThePlugin from "../main";
 import { genericFuzzySuggester, suggesterItem } from "../ui/genericFuzzySuggester";
-import { openFileInObsidian, convertFileIntoArray } from "./fileNavigator";
+import { openFileInObsidian, convertFileIntoArray, parseBookmarkForItsElements } from "./fileNavigator";
 import { getDnpForToday } from "./dailyNotesPages";
 
 async function AddBookmarkFromCurrentView(plugin: ThePlugin): Promise<void> {
@@ -19,14 +19,14 @@ async function AddBookmarkFromCurrentView(plugin: ThePlugin): Promise<void> {
     data.push({ display: "BOTTOM: Bookmark the bottom of the file and mark as a context menu location", info: "BOTTOM*" });
     if (currentLineText.length > 0) {
         data.push({ display: `Location: of selected text "${currentLineText}"`, info: currentLineText });
-        data.push({ display: `Location: of selected text and mark as a context menu location" ${currentLineText}"`, info: currentLineText + "*" });
+        data.push({ display: `Location: of selected text and mark as a context menu location "${currentLineText}"`, info: currentLineText + "*" });
     }
     locationChooser.setSuggesterData(data);
     locationChooser.display((location: suggesterItem) => {
-        let command = "";
+        let command = location.info;
         let prefix = "";
         if(location.info.indexOf("*")>0) {
-            command = location.info.replace("*", "");
+            command = command.replace("*", "");
             prefix = "*";
         }
         if (location) {
@@ -73,29 +73,8 @@ async function openBookmark(plugin: ThePlugin): Promise<void> {
         chooser.setSuggesterData(fileList);
         chooser.setPlaceholder("Select a file")
         await chooser.display(async (fileSelected: suggesterItem) => {
-            const targetFileName = fileSelected.info;
-            let filePath = targetFileName.substring(0, targetFileName.search(";"));
-            const command = targetFileName.substring(filePath.length + 1).toLocaleUpperCase().trim();
-            if (filePath === "DNPTODAY") filePath = await getDnpForToday();
-            let lineNumber = 0;
-            if (command === "BOTTOM" || command !== "TOP") {
-                const fileBookmarkContentsArray: Array<suggesterItem> = await convertFileIntoArray(plugin, filePath);
-                if (command === "BOTTOM")
-                    lineNumber = fileBookmarkContentsArray.length - 1;
-                else { // bookmark has a location, so find in file.
-                    for (let i = 0; i < fileBookmarkContentsArray.length; i++) {
-                        if (fileBookmarkContentsArray[i].display.toLocaleUpperCase().trim() === command) {
-                            lineNumber = i;
-                            break;
-                        }
-                    }
-                    if (lineNumber === -1) {
-                        new Notice("The location was not found in the file: \n\n" + targetFileName.substring(filePath.length + 1), 10000);
-                        return;
-                    }
-                }
-            }
-            openFileInObsidian(plugin, filePath, lineNumber, 0)
+            const bookmarkInfo = await parseBookmarkForItsElements(plugin, fileSelected.info,false);
+            openFileInObsidian(plugin, bookmarkInfo.fileName, bookmarkInfo.fileLineNumber, 0)
         });
     }
 }

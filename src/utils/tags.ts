@@ -1,5 +1,4 @@
 import { CachedMetadata, App } from "obsidian";
-import { listenerCount } from "process";
 import ThePlugin from "../main";
 import { fileCacheAnalyzer } from "./fileCacheAnalyzer";
 import { convertFileIntoArray } from "./fileNavigator";
@@ -31,14 +30,14 @@ export function locationsWhereTagIsUsed(findTag: string): string[] {
 }
 
 export function filesWhereTagIsUsed(findTag: string): string[] {
-    let filesList = [];
+    const filesList = [];
     for(const l of locationsWhereTagIsUsed(findTag))
         if(!filesList.includes(l["file"])) filesList.push(l["file"])
     return filesList;
 }
 
 export async function blocksWhereTagIsUsed(plugin: ThePlugin, findTag: string): Promise<string[]> {
-    let blockInfo = [];
+    const blockInfo = [];
     for(const l of locationsWhereTagIsUsed(findTag)) {
         const f = new fileCacheAnalyzer(plugin, l.file);
         const block = f.getBlockAtLine(l.position.start.line,true);
