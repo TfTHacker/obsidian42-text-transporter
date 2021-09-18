@@ -26,8 +26,8 @@ Check out this quick video to see what it is all about:
 *  Pull line(s) from another file
 *  Pull line(s) from another file as block references
 *  Modifier keys in the file suggester
-  + Press Ctrl (or Meta key) when clicking on an item and when the transport command is performed, the target file will be opened 
-  + Press Shift when clicking on a bookmark will continue the suggester process into selecting lines from the target file, but the first line will be based on the bookmark location 
+  * Press Ctrl (or Meta key) when clicking on an item and when the transport command is performed, the target file will be opened 
+  * Press Shift when clicking on a bookmark will continue the suggester process into selecting lines from the target file, but the first line will be based on the bookmark location 
 
 Note: These commands appear in the context menu when you right mouse click on a line in a file that is being edited. These commands can be toggled off in settings.
 
