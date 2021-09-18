@@ -79,8 +79,12 @@ export default class pluginCommands {
             command: async (): Promise<void> => transporter.pushBlockReferenceToAnotherFile(this.plugin)
         },
         {
-            caption: "Send link of current note", shortcut: "SL", editModeOnly: true, group: "ToFile", isContextMenuItem: true, cmItemEnabled: true, icon: "paper-plane",
-            command: async (): Promise<void> => transporter.copyCurrentFileNameAsLinkToNewLocation(this.plugin)
+            caption: "Send link of current note to a file", shortcut: "SLF", editModeOnly: true, group: "Send", isContextMenuItem: true, cmItemEnabled: true, icon: "paper-plane",
+            command: async (): Promise<void> => transporter.copyCurrentFileNameAsLinkToNewLocation(this.plugin, false)
+        },
+        {
+            caption: "Send link of current note to the Clipboard", shortcut: "SLC", editModeOnly: true, group: "Send", isContextMenuItem: true, cmItemEnabled: true, icon: "paper-plane",
+            command: async (): Promise<void> => transporter.copyCurrentFileNameAsLinkToNewLocation(this.plugin, true)
         },
         {
             caption: "Copy line(s) from another file", shortcut: "CLF", editModeOnly: true, group: "FromFile", isContextMenuItem: true, cmItemEnabled: true, icon: "left-arrow-with-tail",
@@ -132,7 +136,7 @@ export default class pluginCommands {
                 addCommand = true;
             else if (cmd.group!== "replace" &&  (cmd.editModeOnly === false || (editMode && cmd.editModeOnly)))
                 addCommand = true;
-            else if(cmd.shortcut==="SL" && activeView!=viewType.none) { //send command. show file exists
+            else if((cmd.shortcut==="SLF" || cmd.shortcut==="SLC") && activeView!=viewType.none) { //send command. show file exists
                 addCommand = true;
             }
             if (addCommand)

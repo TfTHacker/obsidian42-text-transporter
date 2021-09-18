@@ -164,9 +164,14 @@ async function copyOrPushLineOrSelectionToNewLocationUsingCurrentCursorLocationA
     }
 }
 
-async function copyCurrentFileNameAsLinkToNewLocation(plugin: ThePlugin): Promise<void> {
-    const fileName = this.app.workspace.activeLeaf.view.file.path;
-    copyOrPushLineOrSelectionToNewLocationWithFileLineSuggester(plugin, true, `[[${fileName}]]`);
+//Copies current file to clipbaord as a link or sends it to another file
+async function copyCurrentFileNameAsLinkToNewLocation(plugin: ThePlugin, copyToCliboard: boolean): Promise<void> {
+    const fileLink= "[[" + this.app.workspace.activeLeaf.view.file.path + "]]"
+    if(copyToCliboard) {
+        navigator.clipboard.writeText(fileLink).then(text => text);
+        new Notice(`${fileLink}\n\n Copied to the clipboard.`)
+    } else
+        copyOrPushLineOrSelectionToNewLocationWithFileLineSuggester(plugin, true, fileLink);
 }
 
 //copy a block reference of the current line to another file
