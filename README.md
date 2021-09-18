@@ -44,6 +44,9 @@ Note: These commands appear in the context menu when you right mouse click on a 
 # Quick Capture
 * Opens a form where you can type in text and then quickly capture it to a file in your vault. The Quick Capture screen accepts enters for new lines. Ctrl+Enter will click the capture button.
 
+<a href="https://twitter.com/TfTHacker/status/1439178293618618371" target="_blank"><img style="max-width:200px;" src="docs/images/quickcapture.png"></a> Click image for video demo!
+
+
 ## Boookmarks
 * Bookmkarks are shortcuts to files in your vault. You can have multiple bookmarks defined in settings.
 * See this page for more details: [Bookmarks help](README-Bookmarks.md)

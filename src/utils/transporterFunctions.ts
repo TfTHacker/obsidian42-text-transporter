@@ -165,7 +165,7 @@ async function copyOrPushLineOrSelectionToNewLocationUsingCurrentCursorLocationA
 }
 
 async function copyCurrentFileNameAsLinkToNewLocation(plugin: ThePlugin): Promise<void> {
-    const fileName = getContextObjects().currentFile.path.replace(".md","");
+    const fileName = this.app.workspace.activeLeaf.view.file.path;
     copyOrPushLineOrSelectionToNewLocationWithFileLineSuggester(plugin, true, `[[${fileName}]]`);
 }
 
