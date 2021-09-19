@@ -49,7 +49,7 @@ Note: These commands appear in the context menu when you right mouse click on a 
 * See this page for more details: [Bookmarks help](README-Bookmarks.md)
 
 # Manual installation 
-* Go to the releases page of this repository and find the most current release.
+* Go to the releases page of this repository and find the most current release. [Link for releases](https://github.com/TfTHacker/obsidian42-text-transporter/releases)
 * Download the 3 files main.js, manifest.json, and styles.css at the bottom of the release page.
 * Open your Obsidian Vault folder location on your computer (however you normally do with your Operating System)
 * You should see a folder in your vault called .obsidian ... open that ... and then open the plugins folder within it. (Obsidian Vault\.obsidian\plugins)

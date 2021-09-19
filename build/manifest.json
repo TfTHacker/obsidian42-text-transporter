@@ -4,7 +4,7 @@
 	"version": "1.0",
 	"minAppVersion": "0.9.12",
 	"description": "Advanced text tools for working with text in your vault",
-	"author": "TfT Hacker",
+	"author": "TfTHacker",
 	"authorUrl": "https://github.com/TfTHacker/obsidian-text-transporter",
 	"isDesktopOnly": false
 }
