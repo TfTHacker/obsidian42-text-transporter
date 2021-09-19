@@ -9,7 +9,7 @@ Text Transporter will make you a text ninja!  Text Transporter is made with extr
 *  Replace a link with its original text (via context menu or CP All Commands)
 *  Replace a link with its original text and alias (via context menu or CP All Commands)
 
-<a href="https://twitter.com/TfTHacker/status/1438881713153794054" target="_blank"><img style="max-width:200px;" src="docs/images/blockcopy.png"></a> Click image for video demo!
+<a href="https://twitter.com/TfTHacker/status/1438881713153794054" target="_blank"><img style="width:200px;" src="docs/images/blockcopy.png"></a> Click image for video demo!
 
 
 ## Transporter Commands - Copy, Push, Pull 
@@ -23,7 +23,7 @@ Text Transporter will make you a text ninja!  Text Transporter is made with extr
     - Press Ctrl (or Meta key) when clicking on an item and when the transport command is performed, the target file will be opened 
     - Press Shift when clicking on a bookmark will continue the suggester process into selecting lines from the target file, but the first line will be based on the bookmark location 
 
-<a href="https://twitter.com/tfthacker/status/1439485585236926470" target="_blank"><img style="max-width:200px;" src="docs/images/copypushpull.png"></a> Click image for video demo!
+<a href="https://twitter.com/tfthacker/status/1439485585236926470" target="_blank"><img style="width:200px;" src="docs/images/copypushpull.png"></a> Click image for video demo!
 
 
 Note: These commands appear in the context menu when you right mouse click on a line in a file that is being edited. These commands can be toggled off in settings.
@@ -35,13 +35,13 @@ Note: These commands appear in the context menu when you right mouse click on a 
 *  Select current line and expand up into previous block
 *  Select current line and expand down into next block
 
-<a href="https://twitter.com/TfTHacker/status/1438895408038690817" target="_blank"><img style="max-width:200px;" src="docs/images/selection.png"></a> Click image for video demo!
+<a href="https://twitter.com/TfTHacker/status/1438895408038690817" target="_blank"><img style="width:200px;" src="docs/images/selection.png"></a> Click image for video demo!
 
 
 # Quick Capture
 * Opens a form where you can type in text and then quickly capture it to a file in your vault. The Quick Capture screen accepts enters for new lines. Ctrl+Enter will click the capture button.
 
-<a href="https://twitter.com/TfTHacker/status/1439178293618618371" target="_blank"><img style="max-width:200px;" src="docs/images/quickcapture.png"></a> Click image for video demo!
+<a href="https://twitter.com/TfTHacker/status/1439178293618618371" target="_blank"><img style="width:200px;" src="docs/images/quickcapture.png"></a> Click image for video demo!
 
 
 ## Boookmarks
