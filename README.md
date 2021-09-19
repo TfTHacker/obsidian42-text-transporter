@@ -3,12 +3,6 @@ Text Transporter is the Swiss Army Knife of text manipulation plugins for Obsidi
 
 Text Transporter will make you a text ninja!  Text Transporter is made with extra heart for keyboard lovers!
 
-Check out this quick video to see what it is all about:
-
-<a href="https://www.loom.com/share/6968895a4a7244acbce071068152aa21" target="_blank">
-    <img style="max-width:300px;" src="https://cdn.loom.com/sessions/thumbnails/6968895a4a7244acbce071068152aa21-with-play.gif">
-</a>
-
 ## Block Reference Commands
 *  Copy block embeds from selection and Copy them to clipboard
 *  Copy block embeds as aliases 
@@ -29,6 +23,9 @@ Check out this quick video to see what it is all about:
     - Press Ctrl (or Meta key) when clicking on an item and when the transport command is performed, the target file will be opened 
     - Press Shift when clicking on a bookmark will continue the suggester process into selecting lines from the target file, but the first line will be based on the bookmark location 
 
+<a href="https://twitter.com/tfthacker/status/1439485585236926470" target="_blank"><img style="max-width:200px;" src="docs/images/copypushpull.png"></a> Click image for video demo!
+
+
 Note: These commands appear in the context menu when you right mouse click on a line in a file that is being edited. These commands can be toggled off in settings.
 
 ## Selection commands
@@ -38,7 +35,7 @@ Note: These commands appear in the context menu when you right mouse click on a 
 *  Select current line and expand up into previous block
 *  Select current line and expand down into next block
 
-<a href="https://twitter.com/TfTHacker/status/1438895408038690817" target="_blank"><img style="width:200px;" src="docs/images/selection.png"></a> Click image for video demo!
+<a href="https://twitter.com/TfTHacker/status/1438895408038690817" target="_blank"><img style="max-width:200px;" src="docs/images/selection.png"></a> Click image for video demo!
 
 
 # Quick Capture
