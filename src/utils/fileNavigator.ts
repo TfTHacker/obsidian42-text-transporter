@@ -19,6 +19,11 @@ const TAG_FILE_SEARCH = "#### #tag file search ####";
 const TAG_BLOCK_SEARCH = "---- #tag block search ----";
 
 
+export const getUniqueLinkPath = (filePath:string): string => {
+    //@ts-ignore
+    return app.metadataCache.fileToLinktext(app.vault.getAbstractFileByPath(filePath), "");
+}
+
 export async function createFileChooser(plugin: ThePlugin, excludeFileFromList?: string): Promise<genericFuzzySuggester> {
     const fileList: Array<suggesterItem> = await plugin.fs.getAllFiles("/");
     if (excludeFileFromList) ///don't include this file if needed

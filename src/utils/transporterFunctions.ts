@@ -2,7 +2,7 @@ import { CachedMetadata, Editor, TFile, View, Notice, LinkCache, getLinkpath } f
 import ThePlugin from '../main';
 import { fileCacheAnalyzer, cacheDetails } from './fileCacheAnalyzer';
 import {  suggesterItem } from "../ui/genericFuzzySuggester";
-import { displayFileLineSuggester, openFileInObsidian, parseBookmarkForItsElements } from "./fileNavigator";
+import { displayFileLineSuggester, openFileInObsidian, parseBookmarkForItsElements, getUniqueLinkPath } from "./fileNavigator";
 import { generateBlockId } from "./blockId";
 import { getActiveViewType, viewType } from "./viewManagement";
 
@@ -26,7 +26,7 @@ function getContextObjects(): any {
 }
 
 function cleanupHeaderNameForBlockReference(header: string): string {
-    return header.replaceAll("[", "").replaceAll("]", "").replaceAll("#", "").replaceAll("|", "");
+    return header.replaceAll("[", "").replaceAll("]", "").replaceAll("#", "").replaceAll("|", "").replaceAll(":"," ");
 }
 
 // copy the block reference for the current cursor location into the clipboard
@@ -99,7 +99,8 @@ async function addBlockRefsToSelection(plugin: ThePlugin, copyToClipbard: boolea
 
     if (copyToClipbard && blockRefs.length > 0) {
         let block = "";
-        blockRefs.forEach(b => block += `![[${ctx.currentFile.name}${b}]]\n`);
+        let uniqueLinkPath = getUniqueLinkPath(ctx.currentFile.path);
+        blockRefs.forEach(b => block += `![[${uniqueLinkPath}${b}]]\n`);
         navigator.clipboard.writeText(block).then(text => text);
     }
     return blockRefs;
@@ -166,7 +167,7 @@ async function copyOrPushLineOrSelectionToNewLocationUsingCurrentCursorLocationA
 
 //Copies current file to clipbaord as a link or sends it to another file
 async function copyCurrentFileNameAsLinkToNewLocation(plugin: ThePlugin, copyToCliboard: boolean): Promise<void> {
-    const fileLink= "[[" + this.app.workspace.activeLeaf.view.file.path + "]]"
+    const fileLink= "[[" + getUniqueLinkPath(this.app.workspace.activeLeaf.view.file.path) + "]]"
     if(copyToCliboard) {
         navigator.clipboard.writeText(fileLink).then(text => text);
         new Notice(`${fileLink}\n\n Copied to the clipboard.`)
