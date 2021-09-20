@@ -103,7 +103,7 @@ export default class pluginCommands {
             command: async (): Promise<void> => await openBookmark(this.plugin)
         },
         {
-            caption: "Add a New Bookmark from this file", shortcut: "BA", group: "Bookmarks", editModeOnly: true, isContextMenuItem: true, cmItemEnabled: true, icon: "go-to-file",
+            caption: "Add a New Bookmark from this file", shortcut: "BA", group: "Bookmarks", editModeOnly: true, isContextMenuItem: false, cmItemEnabled: false, icon: "go-to-file",
             command: async (): Promise<void> => AddBookmarkFromCurrentView(this.plugin)
         },
         {
@@ -168,11 +168,11 @@ export default class pluginCommands {
             callback: async () => {
                 await this.masterControlProgram(this.plugin);
             }
-        });
+        });false
 
         // load context menu settings from plugin settings
         for (let i = 0; i < this.commands.length; i++)
-            if (this.commands[i].cmItemEnabled === true && this.plugin.settings["cMenuEnabled-" + this.commands[i].shortcut] !== undefined)
+            if (this.plugin.settings["cMenuEnabled-" + this.commands[i].shortcut] !== undefined)
                 this.commands[i].cmItemEnabled = this.plugin.settings["cMenuEnabled-" + this.commands[i].shortcut]
 
         this.plugin.registerEvent(
@@ -180,9 +180,9 @@ export default class pluginCommands {
                 menu.addSeparator();
                 for (const value of this.commands) { 
                     let addCommand = false;
-                    if (value.isContextMenuItem === true && value.cmItemEnabled === true && value.group!=="replace")
+                    if (value.cmItemEnabled === true && value.group!=="replace")
                         addCommand=true;
-                    else if (value.isContextMenuItem === true && value.cmItemEnabled === true && value.group==="replace" && transporter.testIfCursorIsOnALink()) 
+                    else if (value.cmItemEnabled === true && value.group==="replace" && transporter.testIfCursorIsOnALink()) 
                         addCommand=true;
                     if(addCommand) {
                         menu.addItem(item => {

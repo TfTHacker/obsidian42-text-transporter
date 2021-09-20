@@ -100,18 +100,16 @@ export class SettingsTab extends PluginSettingTab {
 		containerEl.createEl("h2", { text: "Context Menu Commands: Enable/Disable" });
 
 		for(const command of this.plugin.commands.commands) {
-			if(command.isContextMenuItem) {
-				new Setting(containerEl)
-					.setName(command.caption)
-					.addToggle((cb: ToggleComponent) => {
-						cb.setValue(command.cmItemEnabled);
-						cb.onChange(async (value: boolean) => {
-							command.cmItemEnabled = value;
-							this.plugin.settings["cMenuEnabled-" + command.shortcut] = value;
-							await this.plugin.saveSettings();
-						});
+			new Setting(containerEl)
+				.setName(command.caption)
+				.addToggle((cb: ToggleComponent) => {
+					cb.setValue(command.cmItemEnabled);
+					cb.onChange(async (value: boolean) => {
+						command.cmItemEnabled = value;
+						this.plugin.settings["cMenuEnabled-" + command.shortcut] = value;
+						await this.plugin.saveSettings();
 					});
-			}
+				});
 		}
 
 		containerEl.createEl("h2", { text: "Debugging support" });
