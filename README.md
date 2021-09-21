@@ -44,8 +44,8 @@ Note: These commands appear in the context menu when you right mouse click on a 
 <a href="https://twitter.com/TfTHacker/status/1439178293618618371" target="_blank"><img style="width:200px;" src="docs/images/quickcapture.png"></a> Click image for video demo!
 
 
-## Boookmarks
-* Bookmkarks are shortcuts to files in your vault. You can have multiple bookmarks defined in settings.
+## Bookmarks
+* Bookmarks are shortcuts to files in your vault. You can have multiple bookmarks defined in settings.
 * See this page for more details: [Bookmarks help](README-Bookmarks.md)
 
 # Manual installation 
