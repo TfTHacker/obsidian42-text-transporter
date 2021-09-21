@@ -7,8 +7,7 @@ node_modules
 package-lock.json
 
 # build
-build/main.js
-build/.hotreload
+build
 *.js.map
 dict-MyDict.json
 
