@@ -1,7 +1,13 @@
 import { CachedMetadata, App, Pos } from "obsidian";
 import ThePlugin from "../main";
-import { fileCacheAnalyzer } from "./fileCacheAnalyzer";
-import { convertFileIntoArray } from "./fileNavigator";
+import { FileCacheAnalyzer } from "./FileCacheAnalyzer";
+import { convertFileIntoArray } from "./fileNavigatior";
+
+export interface tagLocation {
+    tag: string;
+    filePath: string;
+    position: Pos;
+}
 
 //convenience function
 export function getAllTagsWithCounts(): string[] {
@@ -12,12 +18,6 @@ export function getAllTagsWithCounts(): string[] {
 export function getAllTagsJustTagNames(): string[] {
     //@ts-ignore
     return Object.keys(app.metadataCache.getTags()).sort((a,b)=> a.localeCompare(b))
-}
-
-export interface tagLocation {
-    tag: string;
-    filePath: string;
-    position: Pos;
 }
 
 export function locationsWhereTagIsUsed(findTag: string): Array<tagLocation> {
@@ -44,7 +44,7 @@ export function filesWhereTagIsUsed(findTag: string): string[] {
 export async function blocksWhereTagIsUsed(plugin: ThePlugin, findTag: string): Promise<string[]> {
     const blockInfo = [];
     for(const l of locationsWhereTagIsUsed(findTag)) {
-        const f = new fileCacheAnalyzer(plugin, l.filePath);
+        const f = new FileCacheAnalyzer(plugin, l.filePath);
         const block = f.getBlockAtLine(l.position.start.line,true);
         if(block.type!=="yaml") {
             const taggedFileArray = await convertFileIntoArray(plugin, l.filePath)

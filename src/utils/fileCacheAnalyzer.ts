@@ -1,7 +1,7 @@
 import { CachedMetadata, Pos, SectionCache, CacheItem, HeadingCache, TFile, Loc } from "obsidian";
 import ThePlugin from "../main";
 
-export interface cacheDetails {
+export interface CacheDetails {
     index: number;
     type: string;
     lineStart: number;  // helper value, make it easier to loop through this object.
@@ -12,9 +12,9 @@ export interface cacheDetails {
     headingLevel?: number;
 }
 
-export class fileCacheAnalyzer {
+export class FileCacheAnalyzer {
     cache: CachedMetadata;
-    details: Array<cacheDetails> = [];
+    details: Array<CacheDetails> = [];
     plugin: ThePlugin;
     fileFullPath: string;
 
@@ -49,7 +49,7 @@ export class fileCacheAnalyzer {
         }
     }
 
-    getBlockAtLine(line: number, defaultForward: boolean): cacheDetails {
+    getBlockAtLine(line: number, defaultForward: boolean): CacheDetails {
         let lastBlockToMatch = this.details[0]; //default to 0 element
         for (let i = 0; i < this.details.length; i++) {
             const currentItem = this.details[i];
@@ -66,7 +66,7 @@ export class fileCacheAnalyzer {
         return lastBlockToMatch;
     }
 
-    getBlockAfterLine(line: number): cacheDetails {
+    getBlockAfterLine(line: number): CacheDetails {
         const blockIndexAtLine = this.getBlockAtLine(line, true).index;
         if (this.details.length === 1)
             return this.details[0];
@@ -76,7 +76,7 @@ export class fileCacheAnalyzer {
             return null;
     }
 
-    getBlockBeforeLine(line: number): cacheDetails {
+    getBlockBeforeLine(line: number): CacheDetails {
         const blockNumberAtLine = this.getBlockAtLine(line, false).index;
         if (this.details.length === 0)
             return null;
@@ -126,7 +126,7 @@ export class fileCacheAnalyzer {
             } else if (positionInSameRange) {
                 itemsFoundTrackToBreakOut = true; // will prevent the whole cacheItems from being looped once a match is found
                 // section has a match in cache, so insert into details
-                const itemToAppend: cacheDetails = {
+                const itemToAppend: CacheDetails = {
                     index: 0,
                     type: section.type,
                     lineStart: itemInCache.position.start.line,

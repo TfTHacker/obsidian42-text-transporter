@@ -1,17 +1,17 @@
 import { EditorSelection, SectionCache, EditorPosition } from "obsidian";
 import ThePlugin from '../main';
-import { fileCacheAnalyzer, cacheDetails } from './fileCacheAnalyzer';
+import { FileCacheAnalyzer, CacheDetails } from './FileCacheAnalyzer';
 import { getContextObjects } from "./transporterFunctions";
 
 // Select the current line in the editor of activeLeaf
-function selectCurrentLine(plugin: ThePlugin): void {
+export function selectCurrentLine(plugin: ThePlugin): void {
     const ctx = getContextObjects();
     const selections = ctx.editor.listSelections();
     if(selections.length===1) {
         const sel: EditorSelection = selections[0];
         const lineLength = ctx.editor.getLine(ctx.editor.getCursor().line).length;
         if( (sel.anchor.line === sel.head.line) && (sel.anchor.ch===lineLength || sel.head.ch===lineLength) && ctx.editor.getSelection().length>0 ) {
-            const f = new fileCacheAnalyzer(plugin, ctx.currentFile.path);
+            const f = new FileCacheAnalyzer(plugin, ctx.currentFile.path);
             const block = f.getBlockAtLine(ctx.currentLine, true);
             ctx.editor.setSelection( { line: block.lineStart, ch: 0}, { line: block.lineEnd, ch: block.position.end.col} );
         } else if (sel.anchor.line === sel.head.line)
@@ -22,10 +22,10 @@ function selectCurrentLine(plugin: ThePlugin): void {
 
 // select the next block  or previous block.
 // if nextBlock true - goto next, if false, go to previous
-function selectAdjacentBlock(plugin: ThePlugin, nextBlock: boolean): void {
+export function selectAdjacentBlock(plugin: ThePlugin, nextBlock: boolean): void {
     const ctx = getContextObjects();
-    const f = new fileCacheAnalyzer(plugin, ctx.currentFile.path);
-    let nextBlockSelection: cacheDetails;
+    const f = new FileCacheAnalyzer(plugin, ctx.currentFile.path);
+    let nextBlockSelection: CacheDetails;
     if (nextBlock)
         if (ctx.currentLineEmpty)
             nextBlockSelection = f.getBlockAtLine(ctx.currentLine, true); //nothing selected, go to nearst next block
@@ -45,15 +45,15 @@ function selectAdjacentBlock(plugin: ThePlugin, nextBlock: boolean): void {
 }
 
 //get the current block information from the cache
-function indentifyCurrentSection(): SectionCache {
+export function indentifyCurrentSection(): SectionCache {
     const ctx = getContextObjects();
     return ctx.cache.sections.find(section => section.position.start.line <= ctx.currentLine && section.position.end.line >= ctx.currentLine);
 }
 
 // Select the current section in the editor of activeLeaf and extend the selection in a given direction
-function selectCurrentSection(plugin: ThePlugin, directionUP = true): void {
+export function selectCurrentSection(plugin: ThePlugin, directionUP = true): void {
     const ctx = getContextObjects();
-    const f = new fileCacheAnalyzer(plugin, ctx.currentFile.path);
+    const f = new FileCacheAnalyzer(plugin, ctx.currentFile.path);
     const currentRange: EditorSelection[] = ctx.editor.listSelections();
     if (currentRange[0].anchor.line === currentRange[0].head.line &&
         (currentRange[0].head.ch !== ctx.editor.getSelection().length) || (currentRange[0].head.ch === 0 && currentRange[0].anchor.ch === 0) &&
@@ -129,10 +129,4 @@ function selectCurrentSection(plugin: ThePlugin, directionUP = true): void {
 
     }
 
-} //selectCurrentSection
-
-
-export {
-    selectAdjacentBlock, selectCurrentLine, 
-    selectCurrentSection, indentifyCurrentSection, 
-}
+} 

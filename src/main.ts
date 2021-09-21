@@ -1,7 +1,7 @@
 import { Plugin, } from "obsidian";
-import fileSystem from "./utils/fileSystem";
-import pluginCommands from "./ui/cpCommands";
-import { Settings, DEFAULT_SETTINGS, SettingsTab } from "./ui/settings";
+import FileSystem from "./utils/FileSystem";
+import PluginCommands from "./ui/PluginCommands";
+import { Settings, DEFAULT_SETTINGS, SettingsTab } from "./ui/SettingsTab";
 import { addIcons } from "./ui/icons";
 
 export default class ThePlugin extends Plugin {
@@ -9,14 +9,14 @@ export default class ThePlugin extends Plugin {
 	appID = "obsidian42-text-transporter";
 	settings: Settings;
 	ribbonIcon: HTMLElement;
-	fs: fileSystem;
-	commands: pluginCommands;
+	fs: FileSystem;
+	commands: PluginCommands;
 
 	async onload(): Promise<void> {
 		console.log("loading " + this.appName);
-		this.fs = new fileSystem(this);
+		this.fs = new FileSystem(this);
 		await this.loadSettings();
-		this.commands = new pluginCommands(this)
+		this.commands = new PluginCommands(this)
 		addIcons();
 		if (this.settings.enableRibbon) this.configureRibbonCommand();
 		this.addSettingTab(new SettingsTab(this.app, this));

@@ -1,40 +1,41 @@
-import { App } from "obsidian";
+import { App, TAbstractFile, TFile, TFolder, Vault} from "obsidian";
 import ThePlugin from "../main";
-import { suggesterItem } from "../ui/genericFuzzySuggester";
+import { SuggesterItem } from "../ui/GenericFuzzySuggester";
 
-enum fileSystemReturnType {
+enum FileSystemReturnType {
     foldersOnly = 1,
     filesOnly = 2,
     filesAndFolders = 3
 }
 
-const testFolderExclusion = (folder: string, exclusionFolders: Array<string>): boolean => {
+function testFolderExclusion(folder: string, exclusionFolders: Array<string>): boolean {
     // return  true if should be excluded
     for (const eFolder of exclusionFolders)
         if (folder.startsWith(eFolder + '/'))
             return true
     return false;
-};
+}
 
-const getFiles = async (app: App, rootPath: string, returnType: fileSystemReturnType, responseArray: Array<suggesterItem>, exclusionFolders: Array<string>) => {
+async function getFiles(app: App, returnType: FileSystemReturnType, responseArray: Array<SuggesterItem>, exclusionFolders: Array<string>) {
 
-    if (returnType === fileSystemReturnType.filesOnly || returnType === fileSystemReturnType.filesAndFolders)
+    // first list just files
+    if (returnType === FileSystemReturnType.filesOnly || returnType === FileSystemReturnType.filesAndFolders)
         for (const file of app.vault.getMarkdownFiles())
             if (!testFolderExclusion(file.path, exclusionFolders))
                 responseArray.push({ display: file.path, info: file.path }); //add file to array
 
-    if (returnType === fileSystemReturnType.foldersOnly || returnType === fileSystemReturnType.filesAndFolders) {
-        for (const folder of (await app.vault.adapter.list(rootPath)).folders) {
-            if (!folder.startsWith('.') && !testFolderExclusion(folder + '/', exclusionFolders))
-                if (returnType === fileSystemReturnType.foldersOnly || returnType === fileSystemReturnType.filesAndFolders)
-                    responseArray.push({ display: folder + '/', info: '' }); //add file to array
-            await getFiles(app, folder, returnType, responseArray, exclusionFolders);
-        }
+    // second list folders
+    if (returnType === FileSystemReturnType.foldersOnly || returnType === FileSystemReturnType.filesAndFolders) {
+        Vault.recurseChildren(app.vault.getRoot(), (abstractFile: TAbstractFile) => {
+            if (abstractFile instanceof TFolder) {
+                const path = abstractFile.path === "/" ? abstractFile.path : abstractFile.path + "/"
+                responseArray.push({ display: path, info: path }); //add file to array
+            }
+          });
     }
+}
 
-};
-
-const addLastOpenFiles = async (app: App, responseArray: Array<suggesterItem>) => {
+async function addLastOpenFiles(app: App, responseArray: Array<SuggesterItem>) {
     const lastOpenFiles = app.workspace.getLastOpenFiles();
     if (lastOpenFiles.length === 0) return
 
@@ -57,9 +58,9 @@ const addLastOpenFiles = async (app: App, responseArray: Array<suggesterItem>) =
     // add recent  files  to the top of the list
     for (let i = lastOpenFiles.length-1; i >=0; i--) 
         responseArray.unshift({ display: "Recent file: " + lastOpenFiles[i], info: lastOpenFiles[i] }); //add file to array        
-};
+}
 
-export default class fileSystem {
+export default class FileSystem {
     plugin: ThePlugin;
     exclusionFolders: Array<string> = [];
     dnpLabel: string;
@@ -72,22 +73,22 @@ export default class fileSystem {
         this.exclusionFolders = exclusion;
     }
 
-    async getAllFolders(rootPath: string): Promise<Array<suggesterItem>> {
-        const results: Array<suggesterItem> = [];
-        await getFiles(this.plugin.app, rootPath, fileSystemReturnType.foldersOnly, results, this.exclusionFolders);
+    async getAllFolders(): Promise<Array<SuggesterItem>> {
+        const results: Array<SuggesterItem> = [];
+        await getFiles(this.plugin.app, FileSystemReturnType.foldersOnly, results, this.exclusionFolders);
         return results;
     }
 
-    async getAllFiles(rootPath: string): Promise<Array<suggesterItem>> {
-        const results: Array<suggesterItem> = [];
-        await getFiles(this.plugin.app, rootPath, fileSystemReturnType.filesOnly, results, this.exclusionFolders);
+    async getAllFiles(): Promise<Array<SuggesterItem>> {
+        const results: Array<SuggesterItem> = [];
+        await getFiles(this.plugin.app, FileSystemReturnType.filesOnly, results, this.exclusionFolders);
         await addLastOpenFiles(this.plugin.app, results);
         return results;
     }
 
-    async getAllFoldersAndFiles(rootPath: string): Promise<Array<suggesterItem>> {
-        const results: Array<suggesterItem> = [];
-        await getFiles(this.plugin.app, rootPath, fileSystemReturnType.filesAndFolders, results, this.exclusionFolders);
+    async getAllFoldersAndFiles(): Promise<Array<SuggesterItem>> {
+        const results: Array<SuggesterItem> = [];
+        await getFiles(this.plugin.app, FileSystemReturnType.filesAndFolders, results, this.exclusionFolders);
         await addLastOpenFiles(this.plugin.app, results);
         return results;
     }

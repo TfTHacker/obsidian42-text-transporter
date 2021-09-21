@@ -1,19 +1,19 @@
 import { MarkdownView } from "obsidian"
 
-export enum viewType {
+export enum ViewType {
     source,
     preview, 
     none
 }
 
-export function getActiveViewType(): viewType {
+export function getActiveViewType(): ViewType {
     // @ts-ignore
     const currentView: any = app.workspace.getActiveViewOfType(MarkdownView)
     if(!currentView)
-        return viewType.none
+        return ViewType.none
     else if(currentView.getMode()=="source")
-        return viewType.source;
+        return ViewType.source;
     else if(currentView.getMode()=="preview")
-        return viewType.preview
+        return ViewType.preview
 }
 

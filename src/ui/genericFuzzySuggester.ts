@@ -1,22 +1,22 @@
 import { FuzzySuggestModal, FuzzyMatch } from 'obsidian';
 import ThePlugin from '../main';
 
-interface suggesterItem {
+export interface SuggesterItem {
     display: string,        // displayed to user
     info: any               // supplmental info for the callback
 }
 
 /* USAGE:
-    let x = new genericFuzzySuggester(this);
-    let data = new Array<suggesterItem>();
+    let x = new GenericFuzzySuggester(this);
+    let data = new Array<SuggesterItem>();
     for (let index = 0; index < 10000; index++) 
         data.push( { display: 'display me ' + index, info: 'info ' + index } );
     x.setSuggesterData(data);
-    const result = x.display( (i: suggesterItem, evt: MouseEvent | KeyboardEvent  )=>{ });
+    const result = x.display( (i: SuggesterItem, evt: MouseEvent | KeyboardEvent  )=>{ });
 */
 
-class genericFuzzySuggester extends FuzzySuggestModal<suggesterItem>{
-    data: suggesterItem[];
+export class GenericFuzzySuggester extends FuzzySuggestModal<SuggesterItem>{
+    data: SuggesterItem[];
     callbackFunction: any;
 
     constructor(plugin: ThePlugin) {
@@ -25,20 +25,20 @@ class genericFuzzySuggester extends FuzzySuggestModal<suggesterItem>{
         this.scope.register(["Ctrl"],"Enter", evt => this.enterTrigger(evt));
     }
 
-    setSuggesterData(suggesterData: Array<suggesterItem>): void { this.data = suggesterData }
+    setSuggesterData(suggesterData: Array<SuggesterItem>): void { this.data = suggesterData }
 
-    async display(callBack: (item: suggesterItem, evt: MouseEvent | KeyboardEvent) => void): Promise<any> {
+    async display(callBack: (item: SuggesterItem, evt: MouseEvent | KeyboardEvent) => void): Promise<any> {
         this.callbackFunction = callBack;
         this.open();
     }
 
-    getItems(): suggesterItem[] { return this.data  }
+    getItems(): SuggesterItem[] { return this.data  }
 
-    getItemText(item: suggesterItem): string { return item.display }
+    getItemText(item: SuggesterItem): string { return item.display }
 
     onChooseItem(): void { return } // required by TS, but not using
 
-    renderSuggestion(item: FuzzyMatch<suggesterItem>, el: HTMLElement): void { el.createEl('div', { text: item.item.display }) }
+    renderSuggestion(item: FuzzyMatch<SuggesterItem>, el: HTMLElement): void { el.createEl('div', { text: item.item.display }) }
 
     enterTrigger(evt: KeyboardEvent): void {
         const selectedText = document.querySelector(".suggestion-item.is-selected div").textContent;
@@ -49,9 +49,7 @@ class genericFuzzySuggester extends FuzzySuggestModal<suggesterItem>{
         }
     }
 
-    onChooseSuggestion(item: FuzzyMatch<suggesterItem>, evt: MouseEvent | KeyboardEvent): void { this.invokeCallback(item.item, evt) }
+    onChooseSuggestion(item: FuzzyMatch<SuggesterItem>, evt: MouseEvent | KeyboardEvent): void { this.invokeCallback(item.item, evt) }
 
-    invokeCallback(item: suggesterItem, evt: MouseEvent | KeyboardEvent): void { this.callbackFunction(item, evt) }
+    invokeCallback(item: SuggesterItem, evt: MouseEvent | KeyboardEvent): void { this.callbackFunction(item, evt) }
 }
-
-export { suggesterItem, genericFuzzySuggester };

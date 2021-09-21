@@ -1,13 +1,13 @@
 import ThePlugin from "../main";
-import { genericFuzzySuggester, suggesterItem } from "./genericFuzzySuggester";
+import { GenericFuzzySuggester, SuggesterItem } from "./GenericFuzzySuggester";
 import * as transporter from "../utils/transporterFunctions"
 import * as selectionTools from "../utils/selectionFunctions";
 import { Notice, MarkdownView } from "obsidian";
-import quickCaptureModal from "./quickCapture";
-import { AddBookmarkFromCurrentView, openBookmark, removeBookmark } from "../utils/bookmarks";
-import { getActiveViewType, viewType } from "../utils/viewManagement";
+import QuickCaptureModal from "./QuickCapture";
+import { addBookmarkFromCurrentView, openBookmark, removeBookmark } from "../utils/bookmarks";
+import { getActiveViewType, ViewType } from "../utils/viewManagement";
 
-export default class pluginCommands {
+export default class PluginCommands {
     plugin: ThePlugin;
     // commands notes
     // shortcut - MUST be unique, used as part of the Command Palette ID
@@ -16,7 +16,7 @@ export default class pluginCommands {
     commands = [
         {
             caption: "Quick Capture", shortcut: "QC", group: "QuickCapture", editModeOnly: false, isContextMenuItem: false, cmItemEnabled: false, icon: "highlight-glyph",
-            command: async (): Promise<void> => (new quickCaptureModal(this.plugin)).open()
+            command: async (): Promise<void> => (new QuickCaptureModal(this.plugin)).open()
         },
         {
             caption: "Select current line/expand to block", shortcut: "SB", group: "Selection", editModeOnly: true, isContextMenuItem: false, cmItemEnabled: false, icon: "highlight-glyph",
@@ -99,12 +99,12 @@ export default class pluginCommands {
             command: async (): Promise<void> => transporter.pullBlockReferenceFromAnotherFile(this.plugin)
         },
         {
-            caption: "Open a bookmarked file", shortcut: "BO", group: "Bookmarks", editModeOnly: false, isContextMenuItem: false, cmItemEnabled: false, icon: "go-to-file",
-            command: async (): Promise<void> => await openBookmark(this.plugin)
+            caption: "Add a New Bookmark from this file", shortcut: "BA", group: "Bookmarks", editModeOnly: true, isContextMenuItem: true, cmItemEnabled: true, icon: "go-to-file",
+            command: async (): Promise<void> => addBookmarkFromCurrentView(this.plugin)
         },
         {
-            caption: "Add a New Bookmark from this file", shortcut: "BA", group: "Bookmarks", editModeOnly: true, isContextMenuItem: false, cmItemEnabled: false, icon: "go-to-file",
-            command: async (): Promise<void> => AddBookmarkFromCurrentView(this.plugin)
+            caption: "Open a bookmarked file", shortcut: "BO", group: "Bookmarks", editModeOnly: false, isContextMenuItem: false, cmItemEnabled: false, icon: "go-to-file",
+            command: async (): Promise<void> => await openBookmark(this.plugin)
         },
         {
             caption: "Remove a Bookmark", shortcut: "BR", group: "Bookmarks", editModeOnly: true, isContextMenuItem: false, cmItemEnabled: false, icon: "go-to-file",
@@ -127,16 +127,16 @@ export default class pluginCommands {
         let editMode = true;
         if (!currentView || currentView.getMode() !== "source") editMode = false;
 
-        const gfs = new genericFuzzySuggester(this.plugin);
-        const cpCommands: Array<suggesterItem> = [];
+        const gfs = new GenericFuzzySuggester(this.plugin);
+        const cpCommands: Array<SuggesterItem> = [];
         for (const cmd of this.commands) {
             const activeView = getActiveViewType();
             let addCommand = false;
-            if (cmd.group==="replace" && activeView===viewType.source && transporter.testIfCursorIsOnALink()) 
+            if (cmd.group==="replace" && activeView===ViewType.source && transporter.testIfCursorIsOnALink()) 
                 addCommand = true;
             else if (cmd.group!== "replace" &&  (cmd.editModeOnly === false || (editMode && cmd.editModeOnly)))
                 addCommand = true;
-            else if((cmd.shortcut==="SLF" || cmd.shortcut==="SLC") && activeView!=viewType.none) { //send command. show file exists
+            else if((cmd.shortcut==="SLF" || cmd.shortcut==="SLC") && activeView!=ViewType.none) { //send command. show file exists
                 addCommand = true;
             }
             if (addCommand)
