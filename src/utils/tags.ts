@@ -3,7 +3,7 @@ import ThePlugin from "../main";
 import { FileCacheAnalyzer } from "./FileCacheAnalyzer";
 import { convertFileIntoArray } from "./fileNavigatior";
 
-export interface tagLocation {
+interface TagLocation {
     tag: string;
     filePath: string;
     position: Pos;
@@ -20,7 +20,7 @@ export function getAllTagsJustTagNames(): string[] {
     return Object.keys(app.metadataCache.getTags()).sort((a,b)=> a.localeCompare(b))
 }
 
-export function locationsWhereTagIsUsed(findTag: string): Array<tagLocation> {
+export function locationsWhereTagIsUsed(findTag: string): Array<TagLocation> {
     // @ts-ignore
     const oApp: App = app;
     const results = [];
@@ -31,7 +31,7 @@ export function locationsWhereTagIsUsed(findTag: string): Array<tagLocation> {
                 if(findTag === tag.tag)
                     results.push( { tag:tag, filePath: file.path, position: tag.position})
     }
-    return results.sort((a:tagLocation,b:tagLocation)=> a.filePath.localeCompare(b.filePath))
+    return results.sort((a:TagLocation,b:TagLocation)=> a.filePath.localeCompare(b.filePath))
 }
 
 export function filesWhereTagIsUsed(findTag: string): string[] {

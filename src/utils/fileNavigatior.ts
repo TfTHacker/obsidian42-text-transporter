@@ -3,7 +3,7 @@ import ThePlugin from "../main";
 import { GenericFuzzySuggester, SuggesterItem } from "../ui/GenericFuzzySuggester";
 import { getDnpForToday } from "./dailyNotesPages";
 import { blocksWhereTagIsUsed, filesWhereTagIsUsed, getAllTagsJustTagNames } from "./tags";
-import { getActiveView } from "./viewManagement";
+import { getActiveView } from "./views";
 
 export interface FileChooserCallback {
     (targetFileName: string,

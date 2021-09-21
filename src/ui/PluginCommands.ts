@@ -1,11 +1,11 @@
 import ThePlugin from "../main";
 import { GenericFuzzySuggester, SuggesterItem } from "./GenericFuzzySuggester";
-import * as transporter from "../utils/transporterFunctions"
-import * as selectionTools from "../utils/selectionFunctions";
+import * as transporter from "../features/transporterFunctions"
+import * as selectionTools from "../features/selectionFunctions";
 import { Notice, MarkdownView } from "obsidian";
 import QuickCaptureModal from "./QuickCapture";
 import { addBookmarkFromCurrentView, openBookmark, removeBookmark } from "../utils/bookmarks";
-import { getActiveViewType, ViewType } from "../utils/viewManagement";
+import { getActiveViewType, ViewType } from "../utils/views";
 
 export default class PluginCommands {
     plugin: ThePlugin;
@@ -63,19 +63,19 @@ export default class PluginCommands {
             command: async (): Promise<Array<string>> => transporter.addBlockRefsToSelection(this.plugin, true)
         },
         {
-            caption: "Copy block embed as an alias", shortcut: "CA", group: "block", editModeOnly: true, isContextMenuItem: true, cmItemEnabled: true, icon: "blocks",
-            command: async (): Promise<string> => transporter.copyBlockRefToClipboard(this.plugin, true, true, this.plugin.settings.blockRefAliasIndicator)
+            caption: "Copy block embeds as an alias", shortcut: "CA", group: "block", editModeOnly: true, isContextMenuItem: true, cmItemEnabled: true, icon: "blocks",
+            command: async (): Promise<Array<string>> => transporter.addBlockRefsToSelection(this.plugin, true, true, this.plugin.settings.blockRefAliasIndicator)
         },
         {
-            caption: "Copy line/selection to another file", shortcut: "CLT", group: "ToFile", editModeOnly: true, isContextMenuItem: true, cmItemEnabled: true, icon: "right-arrow-with-tail",
+            caption: "Copy line/selection to another file", shortcut: "CLT", group: "ToFile", editModeOnly: true, isContextMenuItem: true, cmItemEnabled: true, icon: "left-arrow-with-tail",
             command: async (): Promise<void> => transporter.copyOrPushLineOrSelectionToNewLocationWithFileLineSuggester(this.plugin, true)
         },
         {
-            caption: "Push line/selection to another file", shortcut: "PLT", group: "ToFile", editModeOnly: true, isContextMenuItem: true, cmItemEnabled: true, icon: "right-arrow-with-tail",
+            caption: "Push line/selection to another file", shortcut: "PLT", group: "ToFile", editModeOnly: true, isContextMenuItem: true, cmItemEnabled: true, icon: "left-arrow-with-tail",
             command: async (): Promise<void> => transporter.copyOrPushLineOrSelectionToNewLocationWithFileLineSuggester(this.plugin, false)
         },
         {
-            caption: "Push line/selection to another file as a block embed", shortcut: "PLB", group: "ToFile", editModeOnly: true, isContextMenuItem: true, cmItemEnabled: true, icon: "right-arrow-with-tail",
+            caption: "Push line/selection to another file as a block embed", shortcut: "PLB", group: "ToFile", editModeOnly: true, isContextMenuItem: true, cmItemEnabled: true, icon: "left-arrow-with-tail",
             command: async (): Promise<void> => transporter.pushBlockReferenceToAnotherFile(this.plugin)
         },
         {
@@ -87,15 +87,15 @@ export default class PluginCommands {
             command: async (): Promise<void> => transporter.copyCurrentFileNameAsLinkToNewLocation(this.plugin, true)
         },
         {
-            caption: "Copy line(s) from another file", shortcut: "CLF", editModeOnly: true, group: "FromFile", isContextMenuItem: true, cmItemEnabled: true, icon: "left-arrow-with-tail",
+            caption: "Copy line(s) from another file", shortcut: "CLF", editModeOnly: true, group: "FromFile", isContextMenuItem: true, cmItemEnabled: true, icon: "right-arrow-with-tail",
             command: async (): Promise<void> => transporter.copyOrPulLineOrSelectionFromAnotherLocation(this.plugin, true)
         },
         {
-            caption: "Pull line(s) from another file", shortcut: "LLF", editModeOnly: true, group: "FromFile", isContextMenuItem: true, cmItemEnabled: true, icon: "left-arrow-with-tail",
+            caption: "Pull line(s) from another file", shortcut: "LLF", editModeOnly: true, group: "FromFile", isContextMenuItem: true, cmItemEnabled: true, icon: "right-arrow-with-tail",
             command: async (): Promise<void> => transporter.copyOrPulLineOrSelectionFromAnotherLocation(this.plugin, false)
         },
         {
-            caption: "Pull Line(s) from another file as block embeds", shortcut: "LLB", group: "FromFile", editModeOnly: true, isContextMenuItem: true, cmItemEnabled: true, icon: "left-arrow-with-tail",
+            caption: "Pull Line(s) from another file as block embeds", shortcut: "LLB", group: "FromFile", editModeOnly: true, isContextMenuItem: true, cmItemEnabled: true, icon: "right-arrow-with-tail",
             command: async (): Promise<void> => transporter.pullBlockReferenceFromAnotherFile(this.plugin)
         },
         {

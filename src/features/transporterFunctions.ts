@@ -1,53 +1,19 @@
 import { TFile, Notice, LinkCache, getLinkpath } from "obsidian";
 import ThePlugin from '../main';
-import { FileCacheAnalyzer, CacheDetails } from './FileCacheAnalyzer';
+import { FileCacheAnalyzer, CacheDetails } from '../utils/FileCacheAnalyzer';
 import { SuggesterItem } from "../ui/GenericFuzzySuggester";
-import { displayFileLineSuggester, openFileInObsidian, parseBookmarkForItsElements, getUniqueLinkPath } from "./fileNavigatior";
-import { generateBlockId } from "./blockId";
-import { getActiveView } from "./viewManagement";
+import { displayFileLineSuggester, openFileInObsidian, parseBookmarkForItsElements, getUniqueLinkPath } from "../utils/fileNavigatior";
+import { generateBlockId } from "../utils/blockId";
+import { getActiveView } from "../utils/views";
 
 export function cleanupHeaderNameForBlockReference(header: string): string {
     return header.replace(/\[|\]|#|\|/g, '').replace(/:/g, ' ');
 }
 
-// copy the block reference for the current cursor location into the clipboard
-// if header, the header reference is copied into clipobard
-// if it is a block of text, the last line in the block is assigned a reference ID and this is copied into the clipboard
-// copyAsAlias = true = make an aliased block ref
-export async function copyBlockRefToClipboard(plugin: ThePlugin, copyToClipBoard = true, copyAsAlias = false, aliasText = "*"): Promise<string> {
-    const activeView = getActiveView(plugin);
-    const activeEditor = activeView.editor;    
-    const currentLine = activeEditor.getCursor().line;
-    const f = new FileCacheAnalyzer(plugin, activeView.file.path);
-    const currentBlock = f.getBlockAtLine(currentLine, true);
-    const blockPrefix = copyAsAlias === false ? "!" : ""; //if alias, don't do embed preview
-    aliasText = copyAsAlias === true ? "|" + aliasText : "";
-
-    if (currentBlock.type === "heading") {
-        let headerText: string = activeEditor.getRange({ line: currentLine, ch: 0 }, { line: currentLine, ch: activeEditor.getLine(currentLine).length })
-        headerText = currentBlock.headingText.replaceAll("[", "").replaceAll("]", "").replaceAll("#", "").replaceAll("|", "");
-        headerText = "#" + cleanupHeaderNameForBlockReference(headerText);
-        const block = `${blockPrefix}[[${ctx.currentFile.name + headerText.trim()}${aliasText}]]`.split("\n").join("");
-        if (copyToClipBoard)
-            navigator.clipboard.writeText(block).then(text => text);
-        else
-            return block;
-    } else if (currentBlock.type === "paragraph" || currentBlock.type === "list" || currentBlock.type === "blockquote") {
-        const id = currentBlock.blockId ? currentBlock.blockId : generateBlockId();
-        const block = `${blockPrefix}[[${activeView.file.name}#^${id}${aliasText}]]`.split("\n").join("");
-        if (!currentBlock.blockId)
-            activeEditor.replaceRange(` ^${id}`, { line: Number(currentBlock.position.end.line), ch: currentBlock.position.end.col }, { line: Number(currentBlock.position.end.line), ch: currentBlock.position.end.col });
-        if (copyToClipBoard)
-            navigator.clipboard.writeText(block).then(text => text);
-        else
-            return block;
-    } else
-        new Notice("A block reference cannot be generated for this line.")
-} 
-
 // loops through current selected text and adds block refs to each paragraph
 // returns all block refs found in selection
-export async function addBlockRefsToSelection(plugin: ThePlugin, copyToClipbard: boolean): Promise<Array<string>> {
+// optionally copies them to clipboard
+export async function addBlockRefsToSelection(plugin: ThePlugin, copyToClipbard: boolean, copyAsAlias = false, aliasText = "*"): Promise<Array<string>> {
     const activeView = getActiveView(plugin);
     const activeEditor = activeView.editor;    
     const f = new FileCacheAnalyzer(plugin, activeView.file.path);
@@ -82,8 +48,10 @@ export async function addBlockRefsToSelection(plugin: ThePlugin, copyToClipbard:
 
     if (copyToClipbard && blockRefs.length > 0) {
         let block = "";
+        const blockPrefix = copyAsAlias === false ? "!" : ""; //if alias, don't do embed preview
+        aliasText = copyAsAlias === true ? "|" + aliasText : "";    
         const uniqueLinkPath = getUniqueLinkPath(activeView.file.path);
-        blockRefs.forEach(b => block += `![[${uniqueLinkPath}${b}]]\n`);
+        blockRefs.forEach(b => block += `${blockPrefix}[[${uniqueLinkPath}${b}${aliasText}]]\n`);
         navigator.clipboard.writeText(block).then(text => text);
     }
     return blockRefs;
