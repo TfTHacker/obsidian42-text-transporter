@@ -1,9 +1,9 @@
 import { TFile, getLinkpath, Editor, Notice } from "obsidian";
 import ThePlugin from "../main";
 import { GenericFuzzySuggester, SuggesterItem } from "../ui/GenericFuzzySuggester";
-import { getContextObjects } from "./transporterFunctions";
 import { getDnpForToday } from "./dailyNotesPages";
 import { blocksWhereTagIsUsed, filesWhereTagIsUsed, getAllTagsJustTagNames } from "./tags";
+import { getActiveView } from "./viewManagement";
 
 export interface FileChooserCallback {
     (targetFileName: string,
@@ -67,7 +67,7 @@ export async function openFileInObsidian(plugin: ThePlugin, filePath: string, go
     const file: TFile = plugin.app.metadataCache.getFirstLinkpathDest(getLinkpath(filePath), "/");
     await newLeaf.openFile(file, { active: true });
     setTimeout( async () => {
-        const editor: Editor = getContextObjects().editor;
+        const editor: Editor  = getActiveView(plugin).editor;
         editor.setSelection(
             { line: gotoStartLineNumber, ch: 0 },
             { line: gotoStartLineNumber + lineCount, ch: editor.getLine(gotoStartLineNumber + lineCount).length }
@@ -200,7 +200,8 @@ export async function createTagBlockListChooser(plugin: ThePlugin, returnEndPoin
 // show top will diplsay -- top at top of suggester
 // pullTypeRequest - if it is a pull type reqeust, this should be true, some commands might need different behavior if a pull
 export async function displayFileLineSuggester(plugin: ThePlugin, returnEndPoint: boolean, showTop: boolean, pullTypeRequest: boolean, callback: FileChooserCallback): Promise<void> {
-    const currentFilePath = getContextObjects().currentFile !== null ? getContextObjects().currentFile.path : null;
+    const currentFile = getActiveView(plugin).file;
+    const currentFilePath = currentFile ? currentFile.path : null;
     const chooser = await createFileChooser(plugin, currentFilePath);
 
     await chooser.display(async (fileSelected: SuggesterItem, evtFileSelected: MouseEvent | KeyboardEvent) => {

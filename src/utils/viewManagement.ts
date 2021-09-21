@@ -1,4 +1,5 @@
 import { MarkdownView } from "obsidian"
+import ThePlugin from '../main';
 
 export enum ViewType {
     source,
@@ -6,9 +7,12 @@ export enum ViewType {
     none
 }
 
-export function getActiveViewType(): ViewType {
-    // @ts-ignore
-    const currentView: any = app.workspace.getActiveViewOfType(MarkdownView)
+export function getActiveView(plugin: ThePlugin): MarkdownView {
+    return plugin.app.workspace.getActiveViewOfType(MarkdownView);
+}
+
+export function getActiveViewType(plugin: ThePlugin): ViewType {
+    const currentView = getActiveView(plugin);
     if(!currentView)
         return ViewType.none
     else if(currentView.getMode()=="source")

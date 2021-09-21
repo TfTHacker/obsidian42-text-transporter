@@ -1,4 +1,4 @@
-import { App, TAbstractFile, TFile, TFolder, Vault} from "obsidian";
+import { App, TAbstractFile, TFolder, Vault} from "obsidian";
 import ThePlugin from "../main";
 import { SuggesterItem } from "../ui/GenericFuzzySuggester";
 

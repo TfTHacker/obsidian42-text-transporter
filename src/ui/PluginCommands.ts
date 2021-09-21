@@ -41,7 +41,7 @@ export default class PluginCommands {
         {
             caption: "Replace link with text", shortcut: "RLT", group: "replace", editModeOnly: true, isContextMenuItem: true, cmItemEnabled: true, icon: "lines-of-text",
             command: async (): Promise<void> => {
-                const linkInfo = transporter.testIfCursorIsOnALink();
+                const linkInfo = transporter.testIfCursorIsOnALink(this.plugin);
                 if (linkInfo)
                     await transporter.copyBlockReferenceToCurrentCusorLocation(this.plugin, linkInfo, false);
                 else
@@ -51,7 +51,7 @@ export default class PluginCommands {
         {
             caption: "Replace link with text & alias", shortcut: "RLA", group: "replace", editModeOnly: true, isContextMenuItem: true, cmItemEnabled: true, icon: "lines-of-text",
             command: async (): Promise<void> => {
-                const linkInfo = transporter.testIfCursorIsOnALink();
+                const linkInfo = transporter.testIfCursorIsOnALink(this.plugin);
                 if (linkInfo)
                     await transporter.copyBlockReferenceToCurrentCusorLocation(this.plugin, linkInfo, true);
                 else
@@ -130,9 +130,9 @@ export default class PluginCommands {
         const gfs = new GenericFuzzySuggester(this.plugin);
         const cpCommands: Array<SuggesterItem> = [];
         for (const cmd of this.commands) {
-            const activeView = getActiveViewType();
+            const activeView = getActiveViewType(plugin);
             let addCommand = false;
-            if (cmd.group==="replace" && activeView===ViewType.source && transporter.testIfCursorIsOnALink()) 
+            if (cmd.group==="replace" && activeView===ViewType.source && transporter.testIfCursorIsOnALink(this.plugin)) 
                 addCommand = true;
             else if (cmd.group!== "replace" &&  (cmd.editModeOnly === false || (editMode && cmd.editModeOnly)))
                 addCommand = true;
@@ -182,7 +182,7 @@ export default class PluginCommands {
                     let addCommand = false;
                     if (value.cmItemEnabled === true && value.group!=="replace")
                         addCommand=true;
-                    else if (value.cmItemEnabled === true && value.group==="replace" && transporter.testIfCursorIsOnALink()) 
+                    else if (value.cmItemEnabled === true && value.group==="replace" && transporter.testIfCursorIsOnALink(this.plugin)) 
                         addCommand=true;
                     if(addCommand) {
                         menu.addItem(item => {
