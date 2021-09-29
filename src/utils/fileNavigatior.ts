@@ -3,7 +3,7 @@ import ThePlugin from "../main";
 import { GenericFuzzySuggester, SuggesterItem } from "../ui/GenericFuzzySuggester";
 import { getDnpForToday } from "./dailyNotesPages";
 import { blocksWhereTagIsUsed, filesWhereTagIsUsed, getAllTagsJustTagNames } from "./tags";
-import { getActiveView } from "./views";
+import { getActiveView, getActiveViewType, ViewType } from "./views";
 
 export interface FileChooserCallback {
     (targetFileName: string,
@@ -200,10 +200,7 @@ export async function createTagBlockListChooser(plugin: ThePlugin, returnEndPoin
 // show top will diplsay -- top at top of suggester
 // pullTypeRequest - if it is a pull type reqeust, this should be true, some commands might need different behavior if a pull
 export async function displayFileLineSuggester(plugin: ThePlugin, returnEndPoint: boolean, showTop: boolean, pullTypeRequest: boolean, callback: FileChooserCallback): Promise<void> {
-    const currentFile = getActiveView(plugin).file;
-    const currentFilePath = currentFile ? currentFile.path : null;
-    const chooser = await createFileChooser(plugin, currentFilePath);
-
+    const chooser = getActiveViewType(plugin)===ViewType.none ?  await createFileChooser(plugin) : await createFileChooser(plugin, getActiveView(plugin).file.path);
     await chooser.display(async (fileSelected: SuggesterItem, evtFileSelected: MouseEvent | KeyboardEvent) => {
         const shiftKeyUsed = evtFileSelected.shiftKey;
 
