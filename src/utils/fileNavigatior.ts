@@ -18,7 +18,7 @@ export interface FileChooserCallback {
 const TAG_FILE_SEARCH = "#### #tag file search ####";
 const TAG_BLOCK_SEARCH = "---- #tag block search ----";
 
-export const getUniqueLinkPath = (filePath:string): string => {
+export const getUniqueLinkPath = (filePath: string): string => {
     //@ts-ignore
     return app.metadataCache.fileToLinktext(app.vault.getAbstractFileByPath(filePath), "");
 }
@@ -34,7 +34,7 @@ export async function createFileChooser(plugin: ThePlugin, excludeFileFromList?:
         }
 
     fileList.unshift({ display: TAG_BLOCK_SEARCH, info: TAG_BLOCK_SEARCH });
-    fileList.unshift({ display: TAG_FILE_SEARCH,  info: TAG_FILE_SEARCH });
+    fileList.unshift({ display: TAG_FILE_SEARCH, info: TAG_FILE_SEARCH });
 
     // add bookmarks to suggester
     if (plugin.settings.bookmarks.trim().length > 0) {
@@ -66,13 +66,13 @@ export async function openFileInObsidian(plugin: ThePlugin, filePath: string, go
     const newLeaf = plugin.app.workspace.splitActiveLeaf('vertical');
     const file: TFile = plugin.app.metadataCache.getFirstLinkpathDest(getLinkpath(filePath), "/");
     await newLeaf.openFile(file, { active: true });
-    setTimeout( async () => {
-        const editor: Editor  = getActiveView(plugin).editor;
+    setTimeout(async () => {
+        const editor: Editor = getActiveView(plugin).editor;
         editor.setSelection(
             { line: gotoStartLineNumber, ch: 0 },
             { line: gotoStartLineNumber + lineCount, ch: editor.getLine(gotoStartLineNumber + lineCount).length }
         );
-        editor.scrollIntoView( { 
+        editor.scrollIntoView({
             from: { line: gotoStartLineNumber + lineCount, ch: 0 },
             to: { line: gotoStartLineNumber + lineCount, ch: 0 }
         });
@@ -151,11 +151,11 @@ export async function createTagFileListChooser(plugin: ThePlugin, returnEndPoint
         const filesForChosenTag = filesWhereTagIsUsed(tagChosen.info);
         for (const tag of filesForChosenTag)
             tagFileListArray.push({ display: tag, info: tag })
-    
+
         const tagFileChooser = new GenericFuzzySuggester(plugin);
         tagFileChooser.setSuggesterData(tagFileListArray);
         tagFileChooser.setPlaceholder("Select a file");
-    
+
         await tagFileChooser.display(async (fieleChosen: SuggesterItem, evtFile: MouseEvent | KeyboardEvent) => {
             const fileContentsArray: Array<SuggesterItem> = await convertFileIntoArray(plugin, fieleChosen.info);
             if (showTop) fileContentsArray.unshift({ display: "-- Top of file --", info: -1 });
@@ -180,16 +180,16 @@ export async function createTagBlockListChooser(plugin: ThePlugin, returnEndPoin
     tagChooser.setPlaceholder("Select a tag");
     await tagChooser.display(async (tagChosen: SuggesterItem) => {
         const tagFileListArray: Array<SuggesterItem> = [];
-        const tagBlocks = blocksWhereTagIsUsed(plugin,tagChosen.info);
+        const tagBlocks = blocksWhereTagIsUsed(plugin, tagChosen.info);
         for (const tag of await tagBlocks)
             tagFileListArray.push({ display: tag.file + "\n" + tag.blockText, info: tag })
-    
+
         const tagBlockChooser = new GenericFuzzySuggester(plugin);
         tagBlockChooser.setSuggesterData(tagFileListArray);
         tagBlockChooser.setPlaceholder("Select a block");
 
         await tagBlockChooser.display(async (tagBlock: SuggesterItem, evt: MouseEvent | KeyboardEvent) => {
-            callback(tagBlock.info.file, await convertFileIntoArray(plugin, tagBlock.info.file) , tagBlock.info.position.start.line, tagBlock.info.position.end.line, evt);            
+            callback(tagBlock.info.file, await convertFileIntoArray(plugin, tagBlock.info.file), tagBlock.info.position.start.line, tagBlock.info.position.end.line, evt);
         });
     });
 }
@@ -200,7 +200,7 @@ export async function createTagBlockListChooser(plugin: ThePlugin, returnEndPoin
 // show top will diplsay -- top at top of suggester
 // pullTypeRequest - if it is a pull type reqeust, this should be true, some commands might need different behavior if a pull
 export async function displayFileLineSuggester(plugin: ThePlugin, returnEndPoint: boolean, showTop: boolean, pullTypeRequest: boolean, callback: FileChooserCallback): Promise<void> {
-    const chooser = getActiveViewType(plugin)===ViewType.none ?  await createFileChooser(plugin) : await createFileChooser(plugin, getActiveView(plugin).file.path);
+    const chooser = getActiveViewType(plugin) === ViewType.none ? await createFileChooser(plugin) : await createFileChooser(plugin, getActiveView(plugin).file.path);
     await chooser.display(async (fileSelected: SuggesterItem, evtFileSelected: MouseEvent | KeyboardEvent) => {
         const shiftKeyUsed = evtFileSelected.shiftKey;
 
@@ -230,19 +230,24 @@ export async function displayFileLineSuggester(plugin: ThePlugin, returnEndPoint
 
         await displayFileLineSuggesterFromFileList(plugin, returnEndPoint, showTop, targetFileName, fileContentsArray, fileContentsStartingLine, evtFileSelected, callback);
     });
-} 
+}
 
 // supports displayFileLineSuggester and displayTagFileSuggester
 export async function displayFileLineSuggesterFromFileList(plugin: ThePlugin, returnEndPoint: boolean, showTop: boolean, targetFileName: string,
-                                                    fileContentsArray: Array<SuggesterItem>, fileContentsStartingLine: number,
-                                                    evtFileSelected: MouseEvent | KeyboardEvent, callback: FileChooserCallback): Promise<void> {
+    fileContentsArray: Array<SuggesterItem>, fileContentsStartingLine: number,
+    evtFileSelected: MouseEvent | KeyboardEvent, callback: FileChooserCallback): Promise<void> {
     const firstLinechooser = new GenericFuzzySuggester(plugin);
     firstLinechooser.setPlaceholder("Select the line from file")
 
+    const lineCountArray: SuggesterItem[] = fileContentsArray.map(item => {
+        const lineNumber = Number(item.info) + 1;
+        return { display: (lineNumber > 0 ? lineNumber + " " : "") + item.display, info: item.info };
+    });
+
     if (fileContentsStartingLine > 0)
-        firstLinechooser.setSuggesterData(fileContentsArray.slice(fileContentsStartingLine));
+        firstLinechooser.setSuggesterData(lineCountArray.slice(fileContentsStartingLine));
     else
-        firstLinechooser.setSuggesterData(fileContentsArray);
+        firstLinechooser.setSuggesterData(lineCountArray);
 
     await firstLinechooser.display(async (iFileLocation: SuggesterItem, evtFirstLine: MouseEvent | KeyboardEvent) => {
         let startFilePosition = Number(iFileLocation.info);
@@ -267,4 +272,4 @@ export async function displayFileLineSuggesterFromFileList(plugin: ThePlugin, re
         }
     });
 
-} 
+}
