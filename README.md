@@ -76,7 +76,7 @@ Please also help spread the word by sharing your enthusiasim for this plugin on 
 
 You can find me on Twitter [@TfTHacker](https://twitter.com/TfTHacker)
 
-[<img src="https://user-images.githubusercontent.com/14358394/115450238-f39e8100-a21b-11eb-89d0-fa4b82cdbce8.png" width="200">](https://ko-fi.com/TfTHacker)
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/N4N16TNFD)
 
 Also
 
