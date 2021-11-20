@@ -16,7 +16,7 @@ export default class ThePlugin extends Plugin {
 		console.log("loading " + this.appName);
 		this.fs = new FileSystem(this);
 		await this.loadSettings();
-		this.commands = new PluginCommands(this)
+		this.commands = new PluginCommands(this);
 		addIcons();
 		if (this.settings.enableRibbon) this.configureRibbonCommand();
 		this.addSettingTab(new SettingsTab(this.app, this));
