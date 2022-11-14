@@ -1,11 +1,11 @@
 # Bookmarks
-Bookmkarks are shortcuts to files in your vault. You can have multiple bookmarks defined in settings.
+Bookmarks are shortcuts to files in your vault. You can have multiple bookmarks defined in settings.
 Bookmark is made up of the following parameters on one line:
 + File Name seperated by semicolon ; then the command
 + Command can be one of the following:
   + TOP - for top of the file
   + BOTTOM - for the bottom of the file
-  + the text on a line in your target file. If you provide this as the location, all transporter oeprations will happen from the line after the location
+  + the text on a line in your target file. If you provide this as the location, all transporter operations will happen from the line after the location
 
 ### Examples
 + ACTIONS_List.md;# Next Actions ----------
