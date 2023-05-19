@@ -3,7 +3,7 @@ Text Transporter is the Swiss Army Knife of text manipulation plugins for Obsidi
 
 Text Transporter will make you a text ninja!  Text Transporter is made with extra heart for keyboard lovers!
 
-Learn more about Text Transporter: https://publish.obsidian.md/tfthacker/transporter
+Learn more about Text Transporter: https://tfthacker.com/transporter
 
 
 ## Say Thank You
