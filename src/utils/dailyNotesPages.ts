@@ -7,3 +7,9 @@ export async function getDnpForToday(): Promise<string> {
     if (dnp === null) dnp = await createDailyNote(moment());
     return dnp.path;
 }
+
+export async function getDnpForTomorrow(): Promise<string> {
+    let dnp = getDailyNote(moment().add(1, 'days'), getAllDailyNotes());
+    if (dnp === null) dnp = await createDailyNote(moment().add(1, 'days'));
+    return dnp.path;
+}

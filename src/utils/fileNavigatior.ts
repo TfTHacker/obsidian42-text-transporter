@@ -1,7 +1,7 @@
 import { TFile, getLinkpath, Editor, Notice } from "obsidian";
 import ThePlugin from "../main";
 import { GenericFuzzySuggester, SuggesterItem } from "../ui/GenericFuzzySuggester";
-import { getDnpForToday } from "./dailyNotesPages";
+import { getDnpForToday, getDnpForTomorrow } from "./dailyNotesPages";
 import { blocksWhereTagIsUsed, filesWhereTagIsUsed, getAllTagsJustTagNames } from "./tags";
 import { getActiveView, getActiveViewType, ViewType } from "./views";
 
@@ -43,7 +43,7 @@ export async function createFileChooser(plugin: ThePlugin, excludeFileFromList?:
             let filePath = bookmarks[i];
             if (filePath.search(";") > 0) filePath = filePath.substr(0, filePath.search(";"));
             filePath = filePath.replace("*", "");
-            if (filePath === "DNPTODAY" || await plugin.app.vault.adapter.exists(filePath))
+            if (filePath === "DNPTODAY" || filePath === "DNPTOMORROW" || await plugin.app.vault.adapter.exists(filePath))
                 fileList.unshift({ display: "Bookmark: " + bookmarks[i], info: bookmarks[i] })
         }
     }
@@ -99,6 +99,7 @@ export async function parseBookmarkForItsElements(plugin: ThePlugin, bookmarkCom
     const command = bookmarkCommandString.substring(filePath.length + 1).toLocaleUpperCase().trim();
     try {
         if (filePath === "DNPTODAY") filePath = await getDnpForToday();
+        if (filePath === "DNPTOMORROW") filePath = await getDnpForTomorrow();
         let lineNumber = -1; //default for top
         let fileBkmrkContentsArray: Array<SuggesterItem> = null;
         if (await plugin.app.vault.adapter.exists(filePath)) {
