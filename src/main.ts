@@ -4,7 +4,7 @@ import PluginCommands from "./ui/PluginCommands";
 import { Settings, DEFAULT_SETTINGS, SettingsTab } from "./ui/SettingsTab";
 import { addIcons } from "./ui/icons";
 
-export default class ThePlugin extends Plugin {
+export default class ThePlugin extends Plugin { 
 	appName = "Obsidian42 - Text Transporter";
 	appID = "obsidian42-text-transporter";
 	settings: Settings;
