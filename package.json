@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "node esbuild.config.mjs",
     "build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+    "buildproduction": "node esbuild.config.mjs production",
     "lint": "eslint . --ext .ts"
  },
   "author": "TfT Hacker",
