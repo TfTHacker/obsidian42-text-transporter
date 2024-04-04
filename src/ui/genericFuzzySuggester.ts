@@ -6,7 +6,7 @@ export interface SuggesterItem {
     info: any               // supplmental info for the callback
 }
 
-/* USAGE:
+/* USAGE: 
     let x = new GenericFuzzySuggester(this);
     let data = new Array<SuggesterItem>();
     for (let index = 0; index < 10000; index++) 

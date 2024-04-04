@@ -14,7 +14,7 @@ export default class QuickCaptureModal extends Modal {
 
     async submitForm(qcText: string): Promise<void> {
         if (qcText.trim().length === 0)
-            return;  //no text do nothing
+            return;  //no text do nothing 
         transporter.copyOrPushLineOrSelectionToNewLocationWithFileLineSuggester(this.plugin, true, qcText);
         this.close();
     }

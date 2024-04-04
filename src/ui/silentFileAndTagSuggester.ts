@@ -12,7 +12,7 @@ enum TagOrFile {
 
 // This is not an accurate wikilink regex - but works for its intended purpose.
 const FILE_LINK_REGEX = new RegExp(/\[\[([^\]]*)$/);
-const TAG_REGEX = new RegExp(/#([^ ]*)$/);
+const TAG_REGEX = new RegExp(/#([^ ]*)$/); 
 
 export class SilentFileAndTagSuggester extends TextInputSuggest<string> {
     private lastInput  = "";

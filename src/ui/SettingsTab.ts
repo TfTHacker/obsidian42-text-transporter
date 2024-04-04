@@ -83,7 +83,7 @@ export class SettingsTab extends PluginSettingTab {
 					textEl.inputEl.style.width="100%";
 				else if(Platform.isDesktopApp) {
 					textEl.inputEl.rows = 15;
-					textEl.inputEl.cols = 120;
+					textEl.inputEl.cols = 120; 
 				}
 			});
 

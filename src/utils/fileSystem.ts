@@ -15,7 +15,7 @@ function testFolderExclusion(folder: string, exclusionFolders: Array<string>): b
             return true
     return false;
 }
-
+ 
 async function getFiles(app: App, returnType: FileSystemReturnType, responseArray: Array<SuggesterItem>, exclusionFolders: Array<string>) {
 
     // first list just files

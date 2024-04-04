@@ -13,7 +13,7 @@ class Suggest<T> {
     private suggestions: HTMLDivElement[];
     private selectedItem: number;
     private containerEl: HTMLElement;
-
+ 
     constructor(owner: ISuggestOwner<T>, containerEl: HTMLElement, scope: Scope) {
         this.owner = owner;
         this.containerEl = containerEl;

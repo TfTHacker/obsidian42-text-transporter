@@ -14,7 +14,7 @@ export interface CacheDetails {
 
 export class FileCacheAnalyzer {
     cache: CachedMetadata;
-    details: Array<CacheDetails> = [];
+    details: Array<CacheDetails> = []; 
     plugin: ThePlugin;
     fileFullPath: string;
 

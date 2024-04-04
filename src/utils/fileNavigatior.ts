@@ -16,7 +16,7 @@ export interface FileChooserCallback {
 }
 
 const TAG_FILE_SEARCH = "#### #tag file search ####";
-const TAG_BLOCK_SEARCH = "---- #tag block search ----";
+const TAG_BLOCK_SEARCH = "---- #tag block search ----"; 
 
 export const getUniqueLinkPath = (filePath: string): string => {
     //@ts-ignore
