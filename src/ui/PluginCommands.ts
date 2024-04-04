@@ -1,9 +1,9 @@
 import ThePlugin from "../main";
-import { GenericFuzzySuggester, SuggesterItem } from "./GenericFuzzySuggester";
+import { GenericFuzzySuggester, SuggesterItem } from "./genericFuzzySuggester";
 import * as transporter from "../features/transporterFunctions"
 import * as selectionTools from "../features/selectionFunctions";
 import { Notice, MarkdownView } from "obsidian";
-import QuickCaptureModal from "./QuickCapture";
+import QuickCaptureModal from "./quickCapture";
 import { addBookmarkFromCurrentView, openBookmark, removeBookmark } from "../utils/bookmarks";
 import { getActiveViewType, ViewType } from "../utils/views";
 

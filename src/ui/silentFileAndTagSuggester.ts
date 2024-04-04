@@ -1,7 +1,7 @@
 // Thanks bro!
 // https://github.com/chhoumann/quickadd/blob/779ae3d884981790531b26b414a57577b46f7147/src/gui/silentFileAndTagSuggester.ts
 
-import {TextInputSuggest} from "./SilentFileAndTagSuggesterSuggest";
+import {TextInputSuggest} from "./silentFileAndTagSuggesterSuggest";
 import type {App, TAbstractFile} from "obsidian";
 import {TFile} from "obsidian";
 import Fuse from "fuse.js";

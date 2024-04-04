@@ -1,5 +1,5 @@
 import { Plugin, } from "obsidian";
-import FileSystem from "./utils/FileSystem";
+import FileSystem from "./utils/fileSystem";
 import PluginCommands from "./ui/PluginCommands";
 import { Settings, DEFAULT_SETTINGS, SettingsTab } from "./ui/SettingsTab";
 import { addIcons } from "./ui/icons";

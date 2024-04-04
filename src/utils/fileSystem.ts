@@ -1,6 +1,6 @@
 import { App, TAbstractFile, TFolder, Vault} from "obsidian";
 import ThePlugin from "../main";
-import { SuggesterItem } from "../ui/GenericFuzzySuggester";
+import { SuggesterItem } from "../ui/genericFuzzySuggester";
 
 enum FileSystemReturnType {
     foldersOnly = 1,

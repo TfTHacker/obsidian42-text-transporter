@@ -1,7 +1,7 @@
 import { CachedMetadata, App, Pos } from "obsidian";
 import ThePlugin from "../main";
-import { FileCacheAnalyzer } from "./FileCacheAnalyzer";
-import { convertFileIntoArray } from "./FileNavigatior";
+import { FileCacheAnalyzer } from "./fileCacheAnalyzer";
+import { convertFileIntoArray } from "./fileNavigatior";
 
 interface TagLocation {
     tag: string;

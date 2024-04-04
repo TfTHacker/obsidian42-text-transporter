@@ -1,6 +1,6 @@
 import { EditorSelection, SectionCache, EditorPosition } from "obsidian";
 import ThePlugin from '../main';
-import { FileCacheAnalyzer, CacheDetails } from '../utils/FileCacheAnalyzer';
+import { FileCacheAnalyzer, CacheDetails } from '../utils/fileCacheAnalyzer';
 import { getActiveView } from "../utils/views";
 
 // Select the current line in the editor of activeLeaf
