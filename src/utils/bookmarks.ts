@@ -1,7 +1,7 @@
 import { Notice, MarkdownView } from "obsidian";
 import ThePlugin from "../main";
 import { GenericFuzzySuggester, SuggesterItem } from "../ui/GenericFuzzySuggester";
-import { openFileInObsidian, parseBookmarkForItsElements } from "./fileNavigatior";
+import { openFileInObsidian, parseBookmarkForItsElements } from "./FileNavigatior";
 
 // Creates a bookmark from the current selection point. 
 // Bookmarks can be created for:

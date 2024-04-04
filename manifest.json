@@ -1,15 +1,14 @@
 {
 	"id": "obsidian42-text-transporter",
-	"name": "Obsidian42 - Text Transporter",
-	"version": "1.0.4",
-	"minAppVersion": "1.4.16",
+	"name": "Text Transporter",
+	"version": "1.0.5",
+	"minAppVersion": "1.5.0",
 	"description": "Advanced text tools for working with text in your vault",
 	"author": "TfTHacker",
 	"authorUrl": "https://github.com/TfTHacker/obsidian42-text-transporter",
 	"helpUrl": "https://tfthacker.com/transporter",
 	"isDesktopOnly": false,
 	"fundingUrl": {
-        "Buy Me a Coffee": "https://bit.ly/o42-kofi",
-        "Vist my site": "https://tfthacker.com"
-    }
+		"Sponsor my work": "https://tfthacker.com/sponsor"
+	}
 }
