@@ -258,7 +258,7 @@ export async function displayFileLineSuggester(
     } else if (targetFileName === TAG_BLOCK_SEARCH) {
       await createTagBlockListChooser(plugin, returnEndPoint, showTop, callback);
       return;
-    } else if (targetFileName.search(';') > 0) {
+    } else if (targetFileName.search('.md;') > 0) {
       // a bookmark was selected with a command. process callback
       const bkmkInfo = await parseBookmarkForItsElements(plugin, targetFileName, pullTypeRequest);
       if (shiftKeyUsed === false) {

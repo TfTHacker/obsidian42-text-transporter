@@ -31,7 +31,10 @@ export async function addBlockRefsToSelection(
       for (let sectionCounter = 0; sectionCounter < f.details.length; sectionCounter++) {
         const section = f.details[sectionCounter];
         if (selectedLineInEditor >= section.position.start.line && selectedLineInEditor <= section.position.end.line) {
-          if ((section.type === 'paragraph' || section.type === 'list' || section.type === 'blockquote') && !section.blockId) {
+          if (
+            (section.type === 'paragraph' || section.type === 'list' || section.type === 'blockquote' || section.type === 'callout') &&
+            !section.blockId
+          ) {
             const newId = generateBlockId();
             activeEditor.replaceRange(
               ` ^${newId}`,
@@ -334,7 +337,7 @@ export async function copyBlockReferenceToCurrentCusorLocation(
       .slice(pos.start.line, pos.end.line + 1)
       .join('\n');
   }
-  if (leaveAliasToFile) fileContents += ' [[' + linkInfo.link + '|*]]';
+  if (leaveAliasToFile) fileContents += ' [[' + linkInfo.link + '|' + plugin.settings.blockRefAliasIndicator + ']]';
   getActiveView(plugin).editor.replaceRange(
     fileContents,
     { line: linkInfo.position.start.line, ch: linkInfo.position.start.col },

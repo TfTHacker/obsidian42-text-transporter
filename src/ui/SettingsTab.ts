@@ -1,16 +1,6 @@
 import { App, PluginSettingTab, Setting, ToggleComponent, Platform } from 'obsidian';
 import TextTransporterPlugin from '../main';
 
-export interface Settings {
-  blockRefAliasIndicator: string;
-  bookmarks: string;
-}
-
-export const DEFAULT_SETTINGS: Settings = {
-  blockRefAliasIndicator: '*',
-  bookmarks: ''
-};
-
 export class SettingsTab extends PluginSettingTab {
   plugin: TextTransporterPlugin;
 
@@ -69,7 +59,7 @@ export class SettingsTab extends PluginSettingTab {
     const desc = document.createDocumentFragment();
     desc.append(
       desc.createEl('a', {
-        href: 'https://github.com/TfTHacker/obsidian42-text-transporter/blob/main/README-Bookmarks.md',
+        href: 'https://tfthacker.com/Obsidian+Plugins+by+TfTHacker/Text+Transporter/Bookmarks+in+Text+Transporter',
         text: 'Additional documentation  for bookmarks.'
       })
     );
@@ -84,6 +74,7 @@ export class SettingsTab extends PluginSettingTab {
         cb.setValue(command.cmItemEnabled);
         cb.onChange(async (value: boolean) => {
           command.cmItemEnabled = value;
+          // @ts-ignore
           this.plugin.settings['cMenuEnabled-' + command.shortcut] = value;
           await this.plugin.saveSettings();
         });

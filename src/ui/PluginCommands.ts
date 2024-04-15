@@ -236,7 +236,7 @@ export default class PluginCommands {
   ];
 
   async reloadPlugin(): Promise<void> {
-    new Notice('Reloading plugin: ' + this.plugin.appName);
+    new Notice('Reloading plugin: ' + this.plugin.APP_NAME);
     // @ts-ignore
     await app.plugins.disablePlugin('obsidian42-text-transporter');
     // @ts-ignore
@@ -291,7 +291,7 @@ export default class PluginCommands {
     this.plugin = plugin;
     // Combined function
     this.plugin.addCommand({
-      id: this.plugin.appID + '-combinedCommands',
+      id: this.plugin.APP_ID + '-combinedCommands',
       name: 'All Commands List',
       icon: 'TextTransporter',
       callback: async () => {
@@ -368,14 +368,14 @@ export default class PluginCommands {
     for (const value of Object.values(this.commands)) {
       if (value.editModeOnly) {
         this.plugin.addCommand({
-          id: this.plugin.appID + '-' + value.shortcut,
+          id: this.plugin.APP_ID + '-' + value.shortcut,
           icon: value.icon,
           name: `${value.caption} (${value.shortcut})`,
           editorCallback: value.command
         });
       } else {
         this.plugin.addCommand({
-          id: this.plugin.appID + '-' + value.shortcut,
+          id: this.plugin.APP_ID + '-' + value.shortcut,
           icon: value.icon,
           name: `${value.caption} (${value.shortcut})`,
           callback: value.command

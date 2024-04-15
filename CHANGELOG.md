@@ -1,3 +1,12 @@
+# 1.0.8
+
+Fixes:
+
+- Bad link to online help corrected [#75](https://github.com/TfTHacker/obsidian42-text-transporter/issues/75)
+- Blockembeds were not working with callouts [#72](https://github.com/TfTHacker/obsidian42-text-transporter/issues/72)
+- If a file conatined a ; in its name, it would error out for some commands. [#64](https://github.com/TfTHacker/obsidian42-text-transporter/issues/64)
+- If a custom Alias placeholder was defined, it was not being used in the Replace link with text & alias command [#68](https://github.com/TfTHacker/obsidian42-text-transporter/issues/68)
+
 # 1.0.7
 
 - Removed from settings ability to remove icon from ribbon bar. This feature is now native to Obsidian and the plug doesn't need to manage it.
