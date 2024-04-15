@@ -1,6 +1,6 @@
 import { TFile, getLinkpath, Editor, Notice } from 'obsidian';
-import ThePlugin from '../main';
-import { GenericFuzzySuggester, SuggesterItem } from '../ui/genericFuzzySuggester';
+import TextTransporterPlugin from '../main';
+import { GenericFuzzySuggester, SuggesterItem } from '../ui/GenericFuzzySuggester';
 import { getDnpForToday, getDnpForTomorrow } from './dailyNotesPages';
 import { blocksWhereTagIsUsed, filesWhereTagIsUsed, getAllTagsJustTagNames } from './tags';
 import { getActiveView, getActiveViewType, ViewType } from './views';
@@ -25,7 +25,7 @@ export const getUniqueLinkPath = (filePath: string): string => {
   return app.metadataCache.fileToLinktext(app.vault.getAbstractFileByPath(filePath), '');
 };
 
-export async function createFileChooser(plugin: ThePlugin, excludeFileFromList?: string): Promise<GenericFuzzySuggester> {
+export async function createFileChooser(plugin: TextTransporterPlugin, excludeFileFromList?: string): Promise<GenericFuzzySuggester> {
   const fileList: Array<SuggesterItem> = await plugin.fs.getAllFiles();
   if (excludeFileFromList)
     ///don't include this file if needed
@@ -58,14 +58,19 @@ export async function createFileChooser(plugin: ThePlugin, excludeFileFromList?:
 }
 
 // convert file into an array based on suggesterITem
-export async function convertFileIntoArray(plugin: ThePlugin, filePath: string): Promise<Array<SuggesterItem>> {
+export async function convertFileIntoArray(plugin: TextTransporterPlugin, filePath: string): Promise<Array<SuggesterItem>> {
   const fileContentsArray: Array<SuggesterItem> = [];
   for (const [key, value] of Object.entries((await plugin.app.vault.adapter.read(filePath)).split('\n')))
     fileContentsArray.push({ display: value, info: key });
   return fileContentsArray;
 }
 
-export async function openFileInObsidian(plugin: ThePlugin, filePath: string, gotoStartLineNumber = 0, lineCount = 0): Promise<void> {
+export async function openFileInObsidian(
+  plugin: TextTransporterPlugin,
+  filePath: string,
+  gotoStartLineNumber = 0,
+  lineCount = 0
+): Promise<void> {
   const newLeaf = plugin.app.workspace.splitActiveLeaf('vertical');
   const file: TFile = plugin.app.metadataCache.getFirstLinkpathDest(getLinkpath(filePath), '/');
   await newLeaf.openFile(file, { active: true });
@@ -92,7 +97,7 @@ export interface bookmarkInfo {
 
 // pullTypeRequest - if it is a pull type reqeust, this should be true, some commands might need different behavior if a pull
 export async function parseBookmarkForItsElements(
-  plugin: ThePlugin,
+  plugin: TextTransporterPlugin,
   bookmarkCommandString: string,
   pullTypeRequest = false
 ): Promise<bookmarkInfo> {
@@ -143,7 +148,7 @@ export async function parseBookmarkForItsElements(
 }
 
 export async function createTagFileListChooser(
-  plugin: ThePlugin,
+  plugin: TextTransporterPlugin,
   returnEndPoint: boolean,
   showTop: boolean,
   callback: FileChooserCallback
@@ -187,7 +192,7 @@ export async function createTagFileListChooser(
 }
 
 export async function createTagBlockListChooser(
-  plugin: ThePlugin,
+  plugin: TextTransporterPlugin,
   returnEndPoint: boolean,
   showTop: boolean,
   callback: FileChooserCallback
@@ -231,16 +236,16 @@ export async function createTagBlockListChooser(
 // show top will diplsay -- top at top of suggester
 // pullTypeRequest - if it is a pull type reqeust, this should be true, some commands might need different behavior if a pull
 export async function displayFileLineSuggester(
-  plugin: ThePlugin,
+  plugin: TextTransporterPlugin,
   returnEndPoint: boolean,
   showTop: boolean,
   pullTypeRequest: boolean,
   callback: FileChooserCallback
 ): Promise<void> {
   const chooser =
-    getActiveViewType(plugin) === ViewType.none
-      ? await createFileChooser(plugin)
-      : await createFileChooser(plugin, getActiveView(plugin).file.path);
+    getActiveViewType(plugin) === ViewType.none ?
+      await createFileChooser(plugin)
+    : await createFileChooser(plugin, getActiveView(plugin).file.path);
   await chooser.display(async (fileSelected: SuggesterItem, evtFileSelected: MouseEvent | KeyboardEvent) => {
     const shiftKeyUsed = evtFileSelected.shiftKey;
 
@@ -286,7 +291,7 @@ export async function displayFileLineSuggester(
 
 // supports displayFileLineSuggester and displayTagFileSuggester
 export async function displayFileLineSuggesterFromFileList(
-  plugin: ThePlugin,
+  plugin: TextTransporterPlugin,
   returnEndPoint: boolean,
   showTop: boolean,
   targetFileName: string,

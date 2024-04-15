@@ -1,5 +1,5 @@
 import { CachedMetadata, Pos, SectionCache, CacheItem, HeadingCache, TFile, Loc } from 'obsidian';
-import ThePlugin from '../main';
+import TextTransporterPlugin from '../main';
 
 export interface CacheDetails {
   index: number;
@@ -15,10 +15,10 @@ export interface CacheDetails {
 export class FileCacheAnalyzer {
   cache: CachedMetadata;
   details: Array<CacheDetails> = [];
-  plugin: ThePlugin;
+  plugin: TextTransporterPlugin;
   fileFullPath: string;
 
-  constructor(plugin: ThePlugin, fileFullPath: string) {
+  constructor(plugin: TextTransporterPlugin, fileFullPath: string) {
     this.plugin = plugin;
     this.cache = <CachedMetadata>plugin.app.metadataCache.getCache(fileFullPath);
     this.fileFullPath = fileFullPath;

@@ -1,6 +1,6 @@
 import { App, TAbstractFile, TFolder, Vault } from 'obsidian';
-import ThePlugin from '../main';
-import { SuggesterItem } from '../ui/genericFuzzySuggester';
+import TextTransporterPlugin from '../main';
+import { SuggesterItem } from '../ui/GenericFuzzySuggester';
 
 enum FileSystemReturnType {
   foldersOnly = 1,
@@ -56,11 +56,11 @@ async function addLastOpenFiles(app: App, responseArray: Array<SuggesterItem>) {
 }
 
 export default class FileSystem {
-  plugin: ThePlugin;
+  plugin: TextTransporterPlugin;
   exclusionFolders: Array<string> = [];
   dnpLabel: string;
 
-  constructor(plugin: ThePlugin) {
+  constructor(plugin: TextTransporterPlugin) {
     this.plugin = plugin;
   }
 

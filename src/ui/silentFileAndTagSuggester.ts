@@ -1,7 +1,7 @@
 // Thanks bro!
 // https://github.com/chhoumann/quickadd/blob/779ae3d884981790531b26b414a57577b46f7147/src/gui/silentFileAndTagSuggester.ts
 
-import { TextInputSuggest } from './silentFileAndTagSuggesterSuggest';
+import { TextInputSuggest } from './silentFileAndTagSuggesterSuggest1';
 import type { App, TAbstractFile } from 'obsidian';
 import { TFile } from 'obsidian';
 import Fuse from 'fuse.js';
@@ -23,7 +23,10 @@ export class SilentFileAndTagSuggester extends TextInputSuggest<string> {
   private tags: string[];
 
   // constructor(public app: App, public inputEl: HTMLInputElement) {
-  constructor(public app: App, public inputEl: HTMLTextAreaElement) {
+  constructor(
+    public app: App,
+    public inputEl: HTMLTextAreaElement
+  ) {
     super(app, inputEl);
     this.files = app.vault.getMarkdownFiles();
     this.unresolvedLinkNames = this.getUnresolvedLinkNames(app);

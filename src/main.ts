@@ -4,7 +4,7 @@ import PluginCommands from './ui/PluginCommands';
 import { Settings, DEFAULT_SETTINGS, SettingsTab } from './ui/SettingsTab';
 import { addIcons } from './ui/icons';
 
-export default class ThePlugin extends Plugin {
+export default class TextTransporterPlugin extends Plugin {
   appName = this.manifest.name;
   appID = this.manifest.id;
   settings: Settings;

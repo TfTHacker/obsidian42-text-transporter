@@ -1,6 +1,6 @@
 import { Notice, MarkdownView } from 'obsidian';
-import ThePlugin from '../main';
-import { GenericFuzzySuggester, SuggesterItem } from '../ui/genericFuzzySuggester';
+import TextTransporterPlugin from '../main';
+import { GenericFuzzySuggester, SuggesterItem } from '../ui/GenericFuzzySuggester';
 import { openFileInObsidian, parseBookmarkForItsElements } from './fileNavigatior';
 
 // Creates a bookmark from the current selection point.
@@ -9,7 +9,7 @@ import { openFileInObsidian, parseBookmarkForItsElements } from './fileNavigatio
 //  Bottom of file
 //  Specific location of file based on matching a string
 // Optionally, a bookmark can be added to the context menu by adding an asterisk to the beginning of the line.
-export async function addBookmarkFromCurrentView(plugin: ThePlugin): Promise<void> {
+export async function addBookmarkFromCurrentView(plugin: TextTransporterPlugin): Promise<void> {
   const currentView = plugin.app.workspace.getActiveViewOfType(MarkdownView);
   if (!currentView || currentView.getMode() !== 'source') {
     new Notice('A file must be in source edit mode to add a bookmark');
@@ -50,7 +50,7 @@ export async function addBookmarkFromCurrentView(plugin: ThePlugin): Promise<voi
 }
 
 // Quick way to remove a bookmark from the bookmarks list
-export async function removeBookmark(plugin: ThePlugin): Promise<void> {
+export async function removeBookmark(plugin: TextTransporterPlugin): Promise<void> {
   const bookmarks = plugin.settings.bookmarks.split('\n');
   if (bookmarks.length === 0) new Notice('There are no bookmarks defined.');
   else {
@@ -67,7 +67,7 @@ export async function removeBookmark(plugin: ThePlugin): Promise<void> {
 }
 
 // Open the file of a bookmark at its defined location
-export async function openBookmark(plugin: ThePlugin): Promise<void> {
+export async function openBookmark(plugin: TextTransporterPlugin): Promise<void> {
   const bookmarks = plugin.settings.bookmarks.split('\n');
   if (bookmarks.length === 0) new Notice('There are no bookmarks defined.');
   else {

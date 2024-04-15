@@ -1,5 +1,5 @@
 import { App, PluginSettingTab, Setting, ToggleComponent, Platform } from 'obsidian';
-import ThePlugin from '../main';
+import TextTransporterPlugin from '../main';
 
 export interface Settings {
   blockRefAliasIndicator: string;
@@ -12,9 +12,9 @@ export const DEFAULT_SETTINGS: Settings = {
 };
 
 export class SettingsTab extends PluginSettingTab {
-  plugin: ThePlugin;
+  plugin: TextTransporterPlugin;
 
-  constructor(app: App, plugin: ThePlugin) {
+  constructor(app: App, plugin: TextTransporterPlugin) {
     super(app, plugin);
     this.plugin = plugin;
   }

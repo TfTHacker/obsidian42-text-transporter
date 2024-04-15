@@ -1,5 +1,5 @@
 import { FuzzySuggestModal, FuzzyMatch } from 'obsidian';
-import ThePlugin from '../main';
+import TextTransporterPlugin from '../main';
 
 export interface SuggesterItem {
   display: string; // displayed to user
@@ -19,7 +19,7 @@ export class GenericFuzzySuggester extends FuzzySuggestModal<SuggesterItem> {
   data: SuggesterItem[];
   callbackFunction: any;
 
-  constructor(plugin: ThePlugin) {
+  constructor(plugin: TextTransporterPlugin) {
     super(plugin.app);
     this.scope.register(['Shift'], 'Enter', (evt) => this.enterTrigger(evt));
     this.scope.register(['Ctrl'], 'Enter', (evt) => this.enterTrigger(evt));

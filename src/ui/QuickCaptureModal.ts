@@ -1,13 +1,13 @@
 import { Modal, Platform, Setting } from 'obsidian';
-import ThePlugin from '../main';
+import TextTransporterPlugin from '../main';
 import * as transporter from '../features/transporterFunctions';
-import { SilentFileAndTagSuggester } from './silentFileAndTagSuggester';
+import { SilentFileAndTagSuggester } from './SilentFileAndTagSuggester';
 
 export default class QuickCaptureModal extends Modal {
-  plugin: ThePlugin;
+  plugin: TextTransporterPlugin;
   suggester: SilentFileAndTagSuggester;
 
-  constructor(plugin: ThePlugin) {
+  constructor(plugin: TextTransporterPlugin) {
     super(plugin.app);
     this.plugin = plugin;
   }

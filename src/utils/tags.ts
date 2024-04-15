@@ -1,5 +1,5 @@
 import { CachedMetadata, App, Pos } from 'obsidian';
-import ThePlugin from '../main';
+import TextTransporterPlugin from '../main';
 import { FileCacheAnalyzer } from './fileCacheAnalyzer';
 import { convertFileIntoArray } from './fileNavigatior';
 
@@ -38,7 +38,7 @@ export function filesWhereTagIsUsed(findTag: string): string[] {
   return filesList;
 }
 
-export async function blocksWhereTagIsUsed(plugin: ThePlugin, findTag: string): Promise<string[]> {
+export async function blocksWhereTagIsUsed(plugin: TextTransporterPlugin, findTag: string): Promise<string[]> {
   const blockInfo = [];
   for (const l of locationsWhereTagIsUsed(findTag)) {
     const f = new FileCacheAnalyzer(plugin, l.filePath);

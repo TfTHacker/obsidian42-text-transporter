@@ -1,14 +1,14 @@
-import ThePlugin from '../main';
-import { GenericFuzzySuggester, SuggesterItem } from './genericFuzzySuggester';
+import TextTransporterPlugin from '../main';
+import { GenericFuzzySuggester, SuggesterItem } from './GenericFuzzySuggester';
 import * as transporter from '../features/transporterFunctions';
 import * as selectionTools from '../features/selectionFunctions';
 import { Notice, MarkdownView } from 'obsidian';
-import QuickCaptureModal from './quickCapture';
+import QuickCaptureModal from './QuickCaptureModal';
 import { addBookmarkFromCurrentView, openBookmark, removeBookmark } from '../utils/bookmarks';
 import { getActiveViewType, ViewType } from '../utils/views';
 
 export default class PluginCommands {
-  plugin: ThePlugin;
+  plugin: TextTransporterPlugin;
   // commands notes
   // shortcut - MUST be unique, used as part of the Command Palette ID
   // isContextMenuItem - this is a context menu item or not
@@ -244,7 +244,7 @@ export default class PluginCommands {
   }
 
   // list of all commands available in Command  Pallet format
-  async masterControlProgram(plugin: ThePlugin): Promise<void> {
+  async masterControlProgram(plugin: TextTransporterPlugin): Promise<void> {
     // Yes this is a reference to Tron https://www.imdb.com/title/tt0084827/
     const currentView = this.plugin.app.workspace.getActiveViewOfType(MarkdownView);
     let editMode = true;
@@ -287,7 +287,7 @@ export default class PluginCommands {
     gfs.display(async (i: any, evt: MouseEvent | KeyboardEvent) => i.info(evt)); //call the callback
   }
 
-  constructor(plugin: ThePlugin) {
+  constructor(plugin: TextTransporterPlugin) {
     this.plugin = plugin;
     // Combined function
     this.plugin.addCommand({
