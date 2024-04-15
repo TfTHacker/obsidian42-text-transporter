@@ -1,6 +1,6 @@
 import { TFile, getLinkpath, Editor, Notice } from 'obsidian';
 import TextTransporterPlugin from '../main';
-import { GenericFuzzySuggester, SuggesterItem } from '../ui/GenericFuzzySuggester';
+import { GenericFuzzySuggester, SuggesterItem } from '../ui/GenericFuzzySuggester2';
 import { getDnpForToday, getDnpForTomorrow } from './dailyNotesPages';
 import { blocksWhereTagIsUsed, filesWhereTagIsUsed, getAllTagsJustTagNames } from './tags';
 import { getActiveView, getActiveViewType, ViewType } from './views';

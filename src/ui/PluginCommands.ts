@@ -1,5 +1,5 @@
 import TextTransporterPlugin from '../main';
-import { GenericFuzzySuggester, SuggesterItem } from './GenericFuzzySuggester';
+import { GenericFuzzySuggester, SuggesterItem } from './GenericFuzzySuggester2';
 import * as transporter from '../features/transporterFunctions';
 import * as selectionTools from '../features/selectionFunctions';
 import { Notice, MarkdownView } from 'obsidian';

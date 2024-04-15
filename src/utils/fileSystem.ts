@@ -1,6 +1,6 @@
 import { App, TAbstractFile, TFolder, Vault } from 'obsidian';
 import TextTransporterPlugin from '../main';
-import { SuggesterItem } from '../ui/GenericFuzzySuggester';
+import { SuggesterItem } from '../ui/GenericFuzzySuggester2';
 
 enum FileSystemReturnType {
   foldersOnly = 1,

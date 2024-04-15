@@ -1,7 +1,7 @@
 import { TFile, Notice, LinkCache, getLinkpath } from 'obsidian';
 import TextTransporterPlugin from '../main';
 import { FileCacheAnalyzer, CacheDetails } from '../utils/fileCacheAnalyzer';
-import { SuggesterItem } from '../ui/GenericFuzzySuggester';
+import { SuggesterItem } from '../ui/GenericFuzzySuggester2';
 import { displayFileLineSuggester, openFileInObsidian, parseBookmarkForItsElements, getUniqueLinkPath } from '../utils/fileNavigatior';
 import { generateBlockId } from '../utils/blockId';
 import { getActiveView } from '../utils/views';
