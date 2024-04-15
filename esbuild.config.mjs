@@ -4,8 +4,6 @@ import builtins from "builtin-modules";
 import fs from "fs";
 import console from "console";
 
-fs.copyFile("manifest.json", "build/manifest.json", (err) => {if(err) console.log(err)} );
-fs.copyFile("styles.css", "build/styles.css", (err) => {if(err) console.log(err)} );
 
 const prod = (process.argv[2] === "production");
 
@@ -35,9 +33,17 @@ const context = await esbuild.context({
 	outfile: "build/main.js",
 });
 
+
 if (prod) {
+	console.log('Building for production');
 	await context.rebuild();
 	process.exit(0);
 } else {
+	fs.copyFile('manifest.json', 'build/manifest.json', (err) => {
+		if (err) console.log(err);
+	});
+	fs.copyFile('styles.css', 'build/styles.css', (err) => {
+		if (err) console.log(err);
+	});
 	await context.watch();
 }

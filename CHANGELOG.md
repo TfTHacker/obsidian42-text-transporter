@@ -1,3 +1,9 @@
+# 1.0.7
+
+- Removed from settings ability to remove icon from ribbon bar. This feature is now native to Obsidian and the plug doesn't need to manage it.
+- Removed debugging toggle from settings. In the end, this wasn't useful for troubleshooting. Let us apply the KISS principle.
+- Dependencies updated
+
 # 1.0.6
 
 - Dependencies updated
