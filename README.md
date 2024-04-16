@@ -10,6 +10,8 @@ Learn more about Text Transporter: https://tfthacker.com/transporter or follow m
 
 There are a number of new requests in the Issues database. If you are interested in helping expand the functionality of Text Transporter, please take a look at the Issues database and see if there is something you can help with. I am always looking for Pull Requests to help improve Text Transporter from the community.
 
+# Other things
+
 You might also be interested in a few products I have made for Obsidian:
 
 - [Canvas Candy](https://tfthacker.com/canvas-candy) - The Canvas Candy Vault is a set of tools specially designed for use with the canvas feature of Obsidian. With over 40+ decorations, you can add new dimensions to the cards on your canvas.
