@@ -46,8 +46,9 @@ export async function createFileChooser(plugin: TextTransporterPlugin, excludeFi
       let filePath = bookmarks[i];
       if (filePath.search(';') > 0) filePath = filePath.substr(0, filePath.search(';'));
       filePath = filePath.replace('*', '');
-      if (filePath === 'DNPTODAY' || filePath === 'DNPTOMORROW' || (await plugin.app.vault.adapter.exists(filePath)))
+      if (filePath === 'DNPTODAY' || filePath === 'DNPTOMORROW' || (await plugin.app.vault.adapter.exists(filePath))){
         fileList.unshift({ display: 'Bookmark: ' + bookmarks[i], info: bookmarks[i] });
+      }
     }
   }
 
@@ -251,6 +252,7 @@ export async function displayFileLineSuggester(
 
     let fileContentsStartingLine = 0;
     let targetFileName = fileSelected.info;
+    console.log(targetFileName)
 
     if (targetFileName === TAG_FILE_SEARCH) {
       await createTagFileListChooser(plugin, returnEndPoint, showTop, callback);
@@ -258,7 +260,8 @@ export async function displayFileLineSuggester(
     } else if (targetFileName === TAG_BLOCK_SEARCH) {
       await createTagBlockListChooser(plugin, returnEndPoint, showTop, callback);
       return;
-    } else if (targetFileName.search('.md;') > 0) {
+    } else if ( targetFileName.includes('DNPTODAY') || targetFileName.includes('DNPTOMORROW') || targetFileName.includes('.md;')  ) {  
+      console.log('xxxx')
       // a bookmark was selected with a command. process callback
       const bkmkInfo = await parseBookmarkForItsElements(plugin, targetFileName, pullTypeRequest);
       if (shiftKeyUsed === false) {

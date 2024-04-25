@@ -1,6 +1,6 @@
 {
   "name": "obsidian42-text-transporter",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "Text Transporter.",
   "main": "main.js",
   "scripts": {

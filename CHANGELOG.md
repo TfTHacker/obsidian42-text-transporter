@@ -1,3 +1,8 @@
+# 1.0.11
+
+Fixes:
+- Problem with bookmarks to DNPTODAY and DNPTOMORROW
+
 # 1.0.10
 
 Fixes:

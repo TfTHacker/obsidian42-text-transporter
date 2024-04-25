@@ -121,7 +121,7 @@ export default class PluginCommands {
       cmItemEnabled: true,
       icon: 'blocks',
       command: async (): Promise<Array<string>> =>
-        transporter.addBlockRefsToSelection(this.plugin, true, true, this.plugin.settings.blockRefAliasIndicator)
+        await transporter.addBlockRefsToSelection(this.plugin, true, true, this.plugin.settings.blockRefAliasIndicator)
     },
     {
       caption: 'Copy line/selection to another file',
