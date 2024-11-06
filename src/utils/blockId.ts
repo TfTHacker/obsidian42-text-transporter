@@ -1,3 +1,6 @@
-import { customAlphabet } from 'nanoid';
+import { customAlphabet } from "nanoid";
 
-export const generateBlockId = customAlphabet('abcdefghijklmnopqrstuvwz0123456789', 6);
+export const generateBlockId = customAlphabet(
+	"abcdefghijklmnopqrstuvwz0123456789",
+	6,
+);

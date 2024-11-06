@@ -1,8 +1,8 @@
 {
 	"id": "obsidian42-text-transporter",
 	"name": "Text Transporter",
-	"version": "1.0.11",
-	"minAppVersion": "1.5.11",
+	"version": "1.0.12",
+	"minAppVersion": "1.7.2",
 	"description": "Advanced text tools for working with text in your vault",
 	"author": "TfTHacker",
 	"authorUrl": "https://github.com/TfTHacker/obsidian42-text-transporter",

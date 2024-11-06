@@ -1,3 +1,10 @@
+# 1.0.12
+
+### Updates
+- Updating plugin to newest Obsidian recommendations https://docs.obsidian.md/oo24/plugin.
+- Transition to Biome from EsLint and Prettier.
+- The internal command names have been renamed. Any plugins using these internal command names will need to be updated.
+
 # 1.0.11
 
 Fixes:
