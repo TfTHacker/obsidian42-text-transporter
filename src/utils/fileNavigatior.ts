@@ -78,8 +78,17 @@ export async function createFileChooser(
 	}
 
 	const chooser = new GenericFuzzySuggester(plugin);
-	chooser.setSuggesterData(fileList);
 	chooser.setPlaceholder("Select a file");
+	
+	// Set up dynamic items provider that adds "create new file" option when appropriate
+	chooser.setItemsProvider(() => {
+		const inputEl = chooser.modalEl?.find(".prompt-input") as HTMLInputElement;
+		const typedValue = inputEl?.value?.trim() || "";
+		
+		// Use fileSystem logic to add create option dynamically
+		return plugin.fs.addCreateNewFileOption(typedValue, fileList);
+	});
+	
 	return chooser;
 }
 
@@ -316,6 +325,11 @@ export async function displayFileLineSuggester(
 			let fileContentsStartingLine = 0;
 			let targetFileName = fileSelected.info;
 
+			// Handle "create new file" option
+			if (typeof targetFileName === "string" && targetFileName.startsWith("__CREATE_NEW__:")) {
+				targetFileName = targetFileName.replace("__CREATE_NEW__:", "");
+			}
+
 			if (targetFileName === TAG_FILE_SEARCH) {
 				await createTagFileListChooser(
 					plugin,
@@ -362,6 +376,11 @@ export async function displayFileLineSuggester(
 				showTop = false;
 			}
 
+			// Check if file exists, if not create it
+			if (!(await plugin.app.vault.adapter.exists(targetFileName))) {
+				await plugin.app.vault.create(targetFileName, "");
+			}
+			
 			const fileContentsArray: Array<SuggesterItem> =
 				await convertFileIntoArray(plugin, targetFileName);
 			if (showTop)
