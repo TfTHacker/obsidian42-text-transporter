@@ -20,6 +20,8 @@ export class GenericFuzzySuggester extends FuzzySuggestModal<SuggesterItem> {
 	data: SuggesterItem[];
 	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
 	callbackFunction: any;
+	// biome-ignore lint/suspicious/noExplicitAny: <explanation>
+	itemsProvider: any;
 
 	constructor(plugin: TextTransporterPlugin) {
 		super(plugin.app);
@@ -31,6 +33,10 @@ export class GenericFuzzySuggester extends FuzzySuggestModal<SuggesterItem> {
 		this.data = suggesterData;
 	}
 
+	setItemsProvider(provider: () => SuggesterItem[]): void {
+		this.itemsProvider = provider;
+	}
+
 	async display(
 		callBack: (item: SuggesterItem, evt: MouseEvent | KeyboardEvent) => void,
 		// biome-ignore lint/suspicious/noExplicitAny: <explanation>
@@ -40,6 +46,9 @@ export class GenericFuzzySuggester extends FuzzySuggestModal<SuggesterItem> {
 	}
 
 	getItems(): SuggesterItem[] {
+		if (this.itemsProvider) {
+			return this.itemsProvider();
+		}
 		return this.data;
 	}
 

@@ -84,7 +84,6 @@ async function addLastOpenFiles(app: App, responseArray: Array<SuggesterItem>) {
 export default class FileSystem {
 	plugin: TextTransporterPlugin;
 	exclusionFolders: Array<string> = [];
-	dnpLabel: string;
 
 	constructor(plugin: TextTransporterPlugin) {
 		this.plugin = plugin;
@@ -92,6 +91,33 @@ export default class FileSystem {
 
 	setExclusionFolders(exclusion: Array<string>): void {
 		this.exclusionFolders = exclusion;
+	}
+
+	// Add "create new file" option to file list if typed value doesn't have an exact match
+	addCreateNewFileOption(typedValue: string, fileList: Array<SuggesterItem>): Array<SuggesterItem> {
+		if (!typedValue || typedValue.trim() === "") {
+			return fileList; // Don't show if nothing typed
+		}
+
+		let fileName = typedValue.trim();
+		if (!fileName.endsWith(".md")) {
+			fileName += ".md";
+		}
+
+		// Check if typed value exactly matches any existing file (case-insensitive)
+		const hasExactMatch = fileList.some((item) => 
+			item.display.toLowerCase() === typedValue.toLowerCase() ||
+			item.display.toLowerCase() === fileName.toLowerCase()
+		);
+
+		if (!hasExactMatch) {
+			return [
+				...fileList,
+				{ display: `-- Create new file: ${fileName} --`, info: `__CREATE_NEW__:${fileName}` }
+			];
+		}
+
+		return fileList;
 	}
 
 	async getAllFolders(): Promise<Array<SuggesterItem>> {
