@@ -125,6 +125,10 @@ export async function copyOrPushLineOrSelectionToNewLocation(
 		if (f.details.length > 0 && f.details[0].type === "yaml")
 			targetFileLineNumber = f.details[0].lineEnd;
 	}
+	if (targetFileLineNumber === -2) {
+		// go to bottom of file
+		targetFileLineNumber = targetFileContentsArray.length - 1;
+	}
 	targetFileContentsArray.splice(Number(targetFileLineNumber) + 1, 0, {
 		display: newText,
 		info: "",
