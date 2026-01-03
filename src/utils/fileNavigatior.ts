@@ -364,8 +364,10 @@ export async function displayFileLineSuggester(
 
 			const fileContentsArray: Array<SuggesterItem> =
 				await convertFileIntoArray(plugin, targetFileName);
-			if (showTop)
+			if (showTop) {
+				fileContentsArray.unshift({ display: "-- Bottom of file --", info: -2 });
 				fileContentsArray.unshift({ display: "-- Top of file --", info: -1 });
+			}
 
 			await displayFileLineSuggesterFromFileList(
 				plugin,
@@ -416,7 +418,9 @@ export async function displayFileLineSuggesterFromFileList(
 		) => {
 			let startFilePosition = Number(iFileLocation.info);
 			const endFilePosition = startFilePosition;
-			if (showTop) fileContentsArray.splice(0, 1); // remove "-- Top of File -- "
+			if (showTop) {
+				fileContentsArray.splice(0, 2); // remove "-- Top of File --" and "-- Bottom of file --"
+			}
 			if (returnEndPoint) {
 				//if expecting endpoint, show suggester again
 				if (startFilePosition === fileContentsArray.length - 1) {
